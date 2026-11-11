@@ -1,0 +1,7 @@
+streamlit>=1.40,<2
+pandas>=2.0,<3
+requests>=2.31,<3
+shapely>=2.0,<3
+pyproj>=3.6,<4
+plotly>=5.20,<7
+google-adk>=2.0,<3

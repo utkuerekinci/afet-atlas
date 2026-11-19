@@ -3,3 +3,9 @@
 .streamlit/secrets.toml
 __pycache__/
 *.pyc
+
+*.pending.csv
+# Büyük coğrafi ham verileri repoya ve Vercel'e yükleme
+turkey-latest.osm.pbf
+ilce_sinir_osm.geojson
+*.osm.pbf

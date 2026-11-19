@@ -13,9 +13,15 @@ from hesaplama import puanlari_hesapla
 from harita_cizimi import turkiye_haritasi
 from afet_atlas_adk.calistir import ajana_sor_ayrintili
 from veri import depremleri_getir, il_sinirlarini_getir
+from atlas_ui import yasam_ticaret_sayfasi, veri_yukle, il_sinirlari, ortak_harita, il_secimi
+from atlas_afet_ui import diger_afet_sayfasi
+from atlas_analiz import illere_ozet
+from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
+from genel_bakis import (OVERVIEW_TOPICS, TOPIC_DESCRIPTIONS, TOPIC_DESTINATIONS,
+                         prepare_provinces, available_layers, layer_frame, city_summary)
 
 st.set_page_config(
-    page_title="Afet Atlas | Türkiye Doğal Afet Analiz Platformu",
+    page_title="Afet Atlas | Türkiye Bölgesel Analiz ve Karar Destek Platformu",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -124,6 +130,37 @@ a {color:#7ce8d9!important;}
 .footer-brand {margin-top:35px; padding:16px 0; border-top:1px solid #29384b; color:#8399b2; font-size:11px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;}
 @media(max-width:1000px){.radar {width:170px; height:170px;}.hero{padding:27px;min-height:230px}.metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){[data-testid="stMain"] .block-container{padding:1rem 1rem 3rem}.radar{display:none}.hero{padding:26px 21px;min-height:210px}.hero h1{font-size:2.45rem}.metrics{gap:9px}.metric{padding:15px;min-height:111px}.metric-value{font-size:2rem}.metric-label{font-size:9px}}
+[data-testid="stSidebar"] [role="radiogroup"] label {background:#132338; border:1px solid #263b52; border-radius:12px; padding:9px 10px; margin-bottom:3px;}
+[data-testid="stSidebar"] [role="radiogroup"] label:hover {border-color:#60cdbf;}
+.atlas-action {background:linear-gradient(120deg,#132e42,#112136);border:1px solid #2d5064;border-radius:20px;padding:20px 22px;min-height:145px;}
+.atlas-action strong {display:block;font-family:'Space Grotesk',sans-serif;font-size:18px;color:#f4f8ff;margin-bottom:9px;}
+.atlas-action p {font-size:13px;color:#a6c1cd;line-height:1.6;}
+/* Ana sayfa: deprem radarının yerine üç ana araştırma alanını birleştiren atlas figürü */
+.atlas-orbit {position:relative;flex:none;width:250px;height:236px;margin:0 7px 0 25px;}
+.atlas-orbit .orbit-ring {position:absolute;inset:17px 18px 16px 15px;border:1px dashed rgba(104,217,206,.36);border-radius:50%;transform:rotate(-17deg);}
+.atlas-orbit .orbit-ring.inner {inset:52px 55px 50px 52px;border:1px solid rgba(104,217,206,.22);transform:none;}
+.atlas-orbit .orbit-center {position:absolute;inset:83px 79px 80px 78px;background:linear-gradient(145deg,#204e5b,#123247);border:1px solid #5cc9be;border-radius:24px;display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 0 35px rgba(102,224,213,.16);}
+.orbit-center strong {font-family:'Space Grotesk',sans-serif;font-size:28px;line-height:1;color:#e8fff9;}
+.orbit-center span {font-size:9px;letter-spacing:.11em;color:#8dcdcb;margin-top:4px;}
+.orbit-node {position:absolute;z-index:2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.04em;box-shadow:0 8px 24px rgba(0,0,0,.25);border-radius:13px;padding:13px 16px;}
+.orbit-node.life {top:4px;right:14px;color:#b2fff0;background:#184a48;border:1px solid #419e92;}
+.orbit-node.trade {bottom:13px;right:0;color:#ffe4b7;background:#503b37;border:1px solid #9a7860;}
+.orbit-node.disaster {bottom:36px;left:-4px;color:#d0d6ff;background:#283954;border:1px solid #5c709e;}
+.overview-lead {color:#98b2c9;font-size:13px;line-height:1.75;margin:0 0 15px;}
+.overview-meta {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 12px;}
+.overview-meta h2 {margin:0!important;font-size:1.42rem!important;}
+.overview-meta p {margin:5px 0 0;color:#92aec3;font-size:12px;}
+.overview-pane {border:1px solid #2b4557;background:linear-gradient(145deg,#132638,#101e31);border-radius:20px;padding:21px;margin-top:5px;}
+.overview-pane .eyebrow {color:#6bddce;font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;}
+.overview-pane h3 {font-family:'Space Grotesk',sans-serif;color:#eef8ff;font-size:24px!important;margin:7px 0 6px!important;}
+.overview-pane p {font-size:13px;line-height:1.7;color:#b3c8d6;margin:10px 0 0;}
+.overview-data {display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 6px;}
+.overview-chip {background:#182f43;border:1px solid #33556a;border-radius:12px;padding:10px 12px;flex:1;min-width:110px;}
+.overview-chip b {display:block;font-family:'Space Grotesk',sans-serif;font-size:17px;color:#f3f8ff;}
+.overview-chip span {display:block;font-size:10px;color:#9ab4c8;margin-top:5px;}
+.overview-thought {color:#86c8c5;font-size:12px;letter-spacing:.015em;margin:13px 0 16px;line-height:1.65;}
+@media(max-width:1000px){.atlas-orbit{width:200px;height:200px;margin-left:12px}.atlas-orbit .orbit-center{inset:65px 62px}.atlas-orbit .orbit-node{padding:10px 11px}}
+@media(max-width:700px){.atlas-orbit{display:none}.overview-pane{padding:16px}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -149,44 +186,6 @@ def panel_baslik(baslik: str, notu: str = "") -> None:
                 f'<div class="card-note">{escape(notu)}</div></div>', unsafe_allow_html=True)
 
 
-# ---------- Kontrol merkezi ----------
-with st.sidebar:
-    st.markdown('<div class="overline"><span class="dot"></span> BBY261 · DEPREM MODÜLÜ</div>'
-                '<div class="sidebar-head">AFET ATLAS</div>'
-                '<div class="sidebar-small">Türkiye Doğal Afet Analiz Platformu</div>'
-                '<div class="sidebar-label">ANALİZ AYARLARI</div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="sidebar-label">01 / ZAMAN ARALIĞI</div>', unsafe_allow_html=True)
-    guncel_yil = date.today().year
-    yillar = list(range(2015, guncel_yil + 1))
-    varsayilan_yil = 2025 if 2025 in yillar else yillar[-1]
-    baslangic = st.selectbox("Başlangıç yılı", yillar, index=yillar.index(varsayilan_yil))
-    bitis_yillari = [y for y in yillar if y >= baslangic]
-    bitis_default = max(varsayilan_yil, baslangic)
-    bitis = st.selectbox("Bitiş yılı", bitis_yillari, index=bitis_yillari.index(bitis_default))
-
-    st.markdown('<div class="sidebar-label">02 / OLAY FİLTRELERİ</div>', unsafe_allow_html=True)
-    minimum = st.selectbox("Minimum deprem büyüklüğü", [4.5, 5.0], index=0)
-    mesafe = st.select_slider(
-        "İl sınırına yakınlık",
-        options=[0, 50, 75, 100, 150],
-        value=0,
-        format_func=lambda km: f"{km} km",
-        help="0 km yalnızca merkez üssü ilin sınırları içinde kalan depremleri sayar.",
-    )
-    st.caption(f"Seçili yakınlık: **{mesafe} km**. 0 km, yalnızca il sınırı içini kapsar.")
-
-    st.markdown('<div class="sidebar-label">03 / OLAY AĞIRLIKLARI</div>'
-                '<div class="sidebar-scale">'
-                '<div class="sidebar-scale-row"><span>M 4.5 – 4.9</span><span class="scale-num">+1 puan</span></div>'
-                '<div class="sidebar-scale-row"><span>M 5.0 – 5.9</span><span class="scale-num">+3 puan</span></div>'
-                '<div class="sidebar-scale-row"><span>M 6.0 – 6.9</span><span class="scale-num">+5 puan</span></div>'
-                '<div class="sidebar-scale-row"><span>M 7.0 ve üzeri</span><span class="scale-num">+7 puan</span></div>'
-                '</div>', unsafe_allow_html=True)
-    st.caption("Ağırlıklar öğrenci projesine özel; resmî deprem risk puanı değildir.")
-    st.divider()
-    st.caption("Kaynaklar: USGS Earthquake Catalog · geoBoundaries ADM1")
-
 
 @st.cache_data(ttl=6 * 3600, show_spinner=False)
 def verileri_yukle(baslangic_yili: int, bitis_yili: int, min_buyukluk: float):
@@ -200,302 +199,292 @@ def hesapla(depremler: pd.DataFrame, sinirlar: dict, mesafe: int):
     return puanlari_hesapla(depremler, sinirlar, mesafe)
 
 
-st.markdown("""
-<div class="hero">
-  <div class="hero-text">
-    <div class="overline"><span class="dot"></span> TÜRKİYE DOĞAL AFET ANALİZ PLATFORMU <span style="color:#9ab8c8">/ BETA 02</span></div>
-    <h1>AFET <em>ATLAS.</em></h1>
-    <div class="module-title">Deprem hareketliliğine göre en güvenli iller</div>
-    <p>Geçmiş deprem kayıtlarına göre 81 ili karşılaştır. Bu sıralama yalnızca seçtiğin dönem ve mesafedeki hareketliliği gösterir; gerçek deprem güvenliğini ölçmez.</p>
-    <div class="hero-tags"><span class="hero-tag">◉ Deprem modülü aktif</span><span class="hero-tag">◈ 81 il</span><span class="hero-tag">▤ Gerçek açık veri</span></div>
-  </div>
-  <div class="radar" aria-hidden="true">
-    <div class="radar-line-h"></div><div class="radar-line-v"></div>
-    <div class="radar-core"></div><div class="radar-ping"></div><div class="radar-ping2"></div>
-    <div class="radar-label">SİSMİK GÖZLEM</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
 
-try:
-    with st.spinner("Gerçek USGS verileri ve il sınırları yükleniyor..."):
-        sinirlar, depremler = verileri_yukle(baslangic, bitis, minimum)
-    with st.spinner("İl sınırları ve olay ağırlıkları hesaplanıyor..."):
-        sonuc, eslesenler = hesapla(depremler, sinirlar, mesafe)
-except Exception as hata:
-    st.error("Veri kaynaklarına erişilemedi. Uygulama sahte verilerle devam etmiyor.")
-    st.code(str(hata))
-    st.markdown("[USGS kataloğu](https://earthquake.usgs.gov/earthquakes/search/) · "
-                "[geoBoundaries](https://www.geoboundaries.org/api/current/gbOpen/TUR/ADM1/)")
-    st.stop()
 
-if depremler.empty:
-    st.warning("Seçilen tarih ve büyüklük aralığına uygun deprem kaydı yok.")
-    st.stop()
 
-eslesen_tekil = eslesenler['USGS Olay ID'].nunique() if not eslesenler.empty else 0
-aktif_il = int((sonuc['Deprem sayısı'] > 0).sum())
 
-st.markdown('<div class="metrics">'
-            + metric("USGS OLAYI", f"{len(depremler):,}".replace(',', '.'), f"{baslangic}–{bitis} · M ≥ {minimum}")
-            + metric("TARANAN İL", "81", "Türkiye il sınırları", "#89a8ff")
-            + metric("EN BÜYÜK DEPREM", f"{depremler['mag'].max():.1f}", "Kayıtlı en yüksek büyüklük", "#f1ad7d")
-            + metric("İL EŞLEŞMESİ", f"{len(eslesenler):,}".replace(',', '.'), f"{eslesen_tekil} farklı olay · {mesafe} km", "#87d9ac")
-            + '</div>', unsafe_allow_html=True)
-
-st.markdown(
-    '<div class="warning-note"><strong>Yorumlama notu:</strong> Bu panel geçmiş deprem kayıtlarına göre '
-    'hareketlilik karşılaştırması yapar. Deprem riski, beklenen sarsıntı şiddeti, bina güvenliği veya '
-    'gerçek yaşam güvenliği sıralaması değildir. “En güvenli” ifadesi yalnızca seçili tarih, büyüklük ve mesafe kapsamındaki gözlenen hareketliliğe dayanır.</div>', unsafe_allow_html=True
-)
-
-sekme_harita, sekme_siralama, sekme_detay, sekme_yontem, sekme_ajan = st.tabs([
-    "◉  Genel görünüm", "▤  İl sıralaması", "⌕  İl incelemesi", "ⓘ  Veri & yöntem", "✧  Siz Sorun"
-])
-
-# ---------- Genel görünüm ----------
-with sekme_harita:
-    bolum("Deprem hareketliliği haritası", f"{baslangic}–{bitis}  ·  M ≥ {minimum}  ·  {mesafe} km yakınlık", "COĞRAFİ GÖRÜNÜM")
-    sol, sag = st.columns([1.75, 1], gap="large")
-    with sol:
-        # Harita artık Plotly Geo alt sistemine veya dış harita servisine bağlı değil.
-        harita = turkiye_haritasi(sinirlar, sonuc)
-        st.plotly_chart(harita, use_container_width=True, config={"displaylogo": False, "responsive": True})
-        st.markdown('<div class="caption-note">Haritadaki sıcak renkler daha yüksek toplam <strong>olay puanını</strong> gösterir. '
-                    '0 puan, seçili dönemde ve mesafede eşleşen olay olmadığı anlamına gelir; düşük risk garantisi değildir.</div>',
-                    unsafe_allow_html=True)
-    with sag:
-        panel_baslik("Hareketliliği yüksek 5 il", "Seçtiğin tarih, büyüklük ve mesafeye göre")
-        ilk_bes = sonuc.sort_values(['Toplam puan', 'Deprem sayısı'], ascending=False).head(5)
-        en_buyuk_puan = max(int(sonuc['Toplam puan'].max()), 1)
-        bars = []
-        for _, s in ilk_bes.iterrows():
-            pct = max(0, min(100, int(100 * int(s['Toplam puan']) / en_buyuk_puan)))
-            bars.append(f'<div><div class="rank-top"><strong>{escape(str(s["İl"]))}</strong>'
-                        f'<span>{int(s["Toplam puan"])} puan · {int(s["Deprem sayısı"])} olay</span></div>'
-                        f'<div class="rank-track"><div class="rank-fill" style="width:{pct}%"></div></div></div>')
-        st.markdown('<div class="card"><div class="ranking-list">' + ''.join(bars)
-                    + '</div></div>', unsafe_allow_html=True)
-        st.markdown('<div class="two-stat">'
-                    f'<div class="mini-stat"><div class="mini-stat-label">Eşleşme olan il</div><div class="mini-stat-value">{aktif_il}<span style="font-size:12px;color:#8da6bb"> / 81</span></div></div>'
-                    f'<div class="mini-stat"><div class="mini-stat-label">Farklı deprem</div><div class="mini-stat-value">{eslesen_tekil}</div></div>'
-                    '</div>', unsafe_allow_html=True)
-        st.markdown('<div class="caption-note">Bir deprem birden fazla ilin yakınlık alanına girebilir. '
-                    'Bu yüzden il eşleşmesi ile farklı olay sayısı aynı olmak zorunda değildir.</div>', unsafe_allow_html=True)
-
-# ---------- Sıralama ve karşılaştırma ----------
-with sekme_siralama:
-    bolum("Deprem hareketliliğine göre en güvenli iller", "Seçilen kapsamda deprem eşleşmesi bulunan iller · azdan çoğa olay puanı", "İL KARŞILAŞTIRMASI")
-    st.caption("Bu başlık gerçek can, bina veya afet güvenliği sıralaması değildir. Sadece seçili kayıtlar için hareketliliği karşılaştırır.")
-    kayitli_iller = sonuc[sonuc['Deprem sayısı'] > 0].copy()
-    sifir_eslesen_iller = sonuc[sonuc['Deprem sayısı'] == 0].copy()
-    st.dataframe(
-        kayitli_iller[['Sıra', 'İl', 'Deprem sayısı', 'En büyük deprem', 'Toplam puan', 'Karşılaştırma endeksi']],
-        use_container_width=True, hide_index=True, height=360,
-        column_config={"Karşılaştırma endeksi": st.column_config.ProgressColumn(
-            "Göreli endeks / 100", min_value=0, max_value=100, format="%.1f"),
-            "En büyük deprem": st.column_config.NumberColumn("En büyük deprem", format="%.1f")},
-    )
-    with st.expander(f"Seçilen kapsamda deprem eşleşmeyen iller ({len(sifir_eslesen_iller)})"):
-        st.caption("Bu illerde deprem olmayacağı sonucu çıkarılamaz. Kayıt yokluğu, güvenlik yüzdesi değildir ve bu illere 100/100 endeks verilmez.")
-        st.dataframe(sifir_eslesen_iller[['İl', 'Deprem sayısı', 'Toplam puan', 'Gözlem durumu']],
-                     use_container_width=True, hide_index=True, height=230)
-    a, b = st.columns([1, 1], gap="large")
-    with a:
-        panel_baslik("En yüksek puanlı 10 il", "Kümülatif olay ağırlıklarının karşılaştırması")
-        ilk_on = sonuc.nlargest(10, 'Toplam puan').sort_values('Toplam puan')
-        bars = go.Figure(go.Bar(
-            x=ilk_on['Toplam puan'], y=ilk_on['İl'], orientation='h',
-            marker=dict(color='#ee926f', line=dict(width=0)),
-            hovertemplate="<b>%{y}</b><br>%{x} puan<extra></extra>",
-        ))
-        bars.update_layout(
-            height=375, margin=dict(l=0,r=16,t=8,b=30),
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#cddce9', family='DM Sans'),
-            xaxis=dict(title='Toplam olay puanı', showgrid=True, gridcolor='#26364b', zeroline=False),
-            yaxis=dict(title=''),
-        )
-        st.plotly_chart(bars, use_container_width=True, config={'displaylogo':False})
-    with b:
-        panel_baslik("İki ili yan yana incele", "Aynı kurallarla hesaplanan iki ili seç")
-        iller_listesi = sorted(sonuc['İl'].tolist())
-        ilk = st.selectbox("Birinci il", iller_listesi, index=iller_listesi.index('Ankara') if 'Ankara' in iller_listesi else 0)
-        ikinci = st.selectbox("İkinci il", iller_listesi, index=iller_listesi.index('İstanbul') if 'İstanbul' in iller_listesi else 1)
-        if ilk == ikinci:
-            st.info("Karşılaştırma için farklı iki il seçebilirsin.")
-        else:
-            i1 = sonuc.loc[sonuc['İl'] == ilk].iloc[0]
-            i2 = sonuc.loc[sonuc['İl'] == ikinci].iloc[0]
-            st.markdown('<div class="two-stat">'
-                        f'<div class="mini-stat"><div class="mini-stat-label">{escape(ilk)}</div><div class="mini-stat-value">{int(i1["Toplam puan"])} <span style="font-size:12px;color:#8da6bb">puan</span></div><div class="card-note">{int(i1["Deprem sayısı"])} olay</div></div>'
-                        f'<div class="mini-stat"><div class="mini-stat-label">{escape(ikinci)}</div><div class="mini-stat-value">{int(i2["Toplam puan"])} <span style="font-size:12px;color:#8da6bb">puan</span></div><div class="card-note">{int(i2["Deprem sayısı"])} olay</div></div>'
-                        '</div>', unsafe_allow_html=True)
-            kars = go.Figure(go.Bar(x=[ilk, ikinci], y=[int(i1['Toplam puan']), int(i2['Toplam puan'])],
-                                     marker_color=['#5fe0d3', '#f4a27a'],
-                                     text=[f"{int(i1['Toplam puan'])} puan", f"{int(i2['Toplam puan'])} puan"],
-                                     textposition='outside', cliponaxis=False))
-            kars.update_layout(height=240, showlegend=False, margin=dict(l=0,r=4,t=28,b=7),
-                               paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                               font=dict(color='#cddce9'),
-                               yaxis=dict(showgrid=True, gridcolor='#26364b', zeroline=False),
-                               xaxis=dict(showgrid=False))
-            st.plotly_chart(kars, use_container_width=True, config={'displaylogo':False})
-    st.download_button("↓ 81 ilin sonuçlarını CSV indir", sonuc.to_csv(index=False).encode('utf-8-sig'),
-                       file_name=f"afet_atlas_iller_{baslangic}_{bitis}_{mesafe}km.csv", mime='text/csv')
-
-# ---------- İl inceleme ----------
-with sekme_detay:
-    bolum("Bir ilin deprem geçmişi", "Büyüklük, tarih ve eşleşen olayları incele", "DETAYLI İNCELEME")
-    secim = st.selectbox("İncelemek istediğin il", sorted(sonuc['İl'].tolist()), key='detay_il')
-    il_verisi = sonuc.loc[sonuc['İl'] == secim].iloc[0]
-    il_olaylari = eslesenler.loc[eslesenler['İl'] == secim].copy()
-    st.markdown('<div class="two-stat">'
-                f'<div class="mini-stat"><div class="mini-stat-label">{escape(secim)} · Toplam olay puanı</div><div class="mini-stat-value">{int(il_verisi["Toplam puan"])}</div></div>'
-                f'<div class="mini-stat"><div class="mini-stat-label">Eşleşen deprem sayısı</div><div class="mini-stat-value">{int(il_verisi["Deprem sayısı"])}</div></div>'
-                '</div>', unsafe_allow_html=True)
-    if il_olaylari.empty:
-        st.info(f"{secim} için seçili dönem ve {mesafe} km kapsamında M ≥ {minimum} deprem eşleşmesi yok. Bu, ilin deprem açısından güvenli olduğu anlamına gelmez.")
+# ---------- v3.4 Modüller / harita çapında ortak il seçimi ----------
+MODULES=['Genel Bakış','Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel','Siz Sorun','Veri ve Yöntem']
+if 'secilen_il' not in st.session_state:
+    st.session_state['secilen_il']='Ankara'
+with st.sidebar:
+    st.markdown('<div class="overline"><span class="dot"></span> BBY261 · İLERİ PROGRAMLAMA</div>'
+                '<div class="sidebar-head">AFET ATLAS</div>'
+                '<div class="sidebar-small">Bölgesel Analiz ve Karar Destek</div>',unsafe_allow_html=True)
+    module=st.radio('Bölüm',MODULES,key='v34_bolum')
+    st.divider()
+    st.markdown('<div class="sidebar-label">SEÇİLİ BÖLGE</div>',unsafe_allow_html=True)
+    st.write('**'+st.session_state.get('secilen_il','Ankara')+'**')
+    if module=='Afet Analizi':
+        chosen_disaster=st.selectbox('Afet türü',['Deprem','Orman yangını','Sel / taşkın','Heyelan','Çığ','Fırtına','Kuraklık'],key='v36_disaster')
     else:
-        il_olaylari['Tarih'] = pd.to_datetime(il_olaylari['Tarih'], utc=True)
-        bolum("Olay zaman çizelgesi", "İşaretlerin yeri deprem büyüklüğünü gösterir")
-        fig_zaman = go.Figure(go.Scatter(
-            x=il_olaylari['Tarih'], y=il_olaylari['Büyüklük'],
-            mode='markers',
-            marker=dict(size=il_olaylari['Puan'] * 3.0 + 10, color=il_olaylari['Puan'],
-                        colorscale=[[0,'#56d7cb'], [.45,'#e7be79'],[1,'#f17e6c']],
-                        line=dict(width=1, color='#0b182a'), opacity=.86, showscale=False),
-            customdata=il_olaylari[['Puan', 'Yer', 'İl sınırına uzaklık (km)']].to_numpy(),
-            hovertemplate='<b>%{x|%d.%m.%Y}</b><br>Büyüklük: %{y}<br>Puan: %{customdata[0]}<br>Yer: %{customdata[1]}<br>İl sınırına: %{customdata[2]} km<extra></extra>',
-        ))
-        fig_zaman.update_layout(height=345, margin=dict(l=0,r=15,t=8,b=25),
-                               paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                               font=dict(color='#cddce9', family='DM Sans'),
-                               xaxis=dict(showgrid=True, gridcolor='#26364b'),
-                               yaxis=dict(title='Büyüklük (M)', showgrid=True, gridcolor='#26364b'))
-        st.plotly_chart(fig_zaman, use_container_width=True, config={'displaylogo':False})
-        panel_baslik("Deprem kayıtları", "USGS olay kimlikleri üzerinden kontrol edilebilir")
-        st.dataframe(il_olaylari.sort_values('Tarih', ascending=False),
-                     hide_index=True, use_container_width=True)
-    st.download_button("↓ Bu ilin eşleşen deprem kayıtlarını indir",
-                       il_olaylari.to_csv(index=False).encode('utf-8-sig'),
-                       file_name=f"{secim.lower()}_depremleri_{baslangic}_{bitis}_{mesafe}km.csv", mime='text/csv')
+        chosen_disaster='Deprem'
+    if (module=='Afet Analizi' and chosen_disaster=='Deprem') or module=='Siz Sorun':
+        st.markdown('<div class="sidebar-label">DEPREM FİLTRELERİ</div>',unsafe_allow_html=True)
+        years=list(range(2015,date.today().year+1))
+        y0=st.selectbox('Başlangıç yılı',years,index=years.index(2025),key='v34_year_start')
+        valid=[x for x in years if x>=y0]
+        y1=st.selectbox('Bitiş yılı',valid,index=valid.index(max(2025,y0)),key='v34_year_end')
+        m=st.selectbox('Minimum büyüklük',[4.5,5.0],key='v34_min_m')
+        distance=st.select_slider('İl sınırına yakınlık (km)',options=[0,50,75,100,150],value=0,key='v34_distance')
+    else:
+        y0,y1,m,distance=2025,2025,4.5,0
 
-# ---------- Veri ve metodoloji ----------
-with sekme_yontem:
-    bolum("Veri, hesaplama ve sınırlamalar", "Yöntem şeffaflığı · Akademik proje prototipi", "KAYNAKLAR")
-    st.markdown(f"""
-**Veri kaynakları**
+    st.divider()
+    st.caption('Veri → Analiz → Harita → Açıklama · v4.2')
 
-- [USGS Earthquake Catalog](https://earthquake.usgs.gov/earthquakes/search/): {baslangic}–{bitis} döneminde M ≥ {minimum}, Türkiye ve çevresi için enlem 34–43.5 ve boylam 24–46 aralığındaki kayıtlar. USGS olay kimlikleri kullanılır.
-- [geoBoundaries – Türkiye ADM1](https://www.geoboundaries.org/api/current/gbOpen/TUR/ADM1/): 81 il poligonunu içeren GeoJSON sınır verisi.
 
-**Uygulanan ağırlıklar**
+def heading(section:str,text:str,description:str,overview:bool=False):
+    illustration = (
+        '<div class="atlas-orbit" aria-hidden="true"><div class="orbit-ring"></div>'
+        '<div class="orbit-ring inner"></div>'
+        '<div class="orbit-center"><strong>TR</strong><span>KEŞFET</span></div>'
+        '<div class="orbit-node life">YAŞAM</div><div class="orbit-node trade">TİCARET</div>'
+        '<div class="orbit-node disaster">AFET</div></div>'
+        if overview else
+        '<div class="radar"><div class="radar-line-h"></div><div class="radar-line-v"></div>'
+        '<div class="radar-core"></div><div class="radar-ping"></div></div>'
+    )
+    st.markdown(f'<div class="hero"><div class="hero-text">'
+                f'<div class="overline"><span class="dot"></span>{escape(section)}</div>'
+                f'<h1>AFET <em>ATLAS.</em></h1>'
+                f'<div class="module-title">{escape(text)}</div>'
+                f'<p>{escape(description)}</p></div>'
+                f'{illustration}</div>',unsafe_allow_html=True)
 
-| Deprem büyüklüğü | Tek olay puanı |
-|:--|--:|
-| 4.5–4.9 | 1 |
-| 5.0–5.9 | 3 |
-| 6.0–6.9 | 5 |
-| 7.0 ve üzeri | 7 |
 
-**İl puanı nasıl hesaplanıyor?** Seçilen **{mesafe} km** yakınlık içinde merkez üssü bulunan her olayın ağırlığı toplanır. 0 km seçildiğinde yalnızca il poligonunun içine düşen merkez üsleri eşleşir. Bir olay, yakınlık alanlarına bağlı olarak birden fazla ilde sayılabilir.
+def deprem_bul(y0:int,y1:int,m:float,d:int):
+    sinirlar,depremler=verileri_yukle(y0,y1,m)
+    iller,eslesenler=hesapla(depremler,sinirlar,d)
+    return sinirlar,depremler,iller,eslesenler
 
-**Göreli karşılaştırma endeksi:** Pozitif puanlı iller için `100 × [1 − ln(1 + il_puanı) / ln(1 + en_yüksek_il_puanı)]` kullanılır. Bu bir olasılık veya gerçek güvenlik yüzdesi değildir. **Sıfır eşleşmesi olan illerin endeksi hesaplanmaz**, çünkü seçili tarihte M ≥ {minimum} büyüklüğünde kayıt bulunmaması deprem tehlikesinin yokluğunu göstermez.
 
-**Bilimsel sınır:** Bu puanlar deprem tehlike haritası, beklenen sarsıntı, nüfus riski veya yapı güvenliği ölçüsü değildir. Yalnızca seçilen veri ve kurallarla geçmiş olay hareketliliğini ifade eder. USGS küçük magnitüdlü depremleri Türkiye'de eksik kaydedebilir. “Deprem hareketliliğine göre en güvenli iller” başlığı yalnızca geçmiş kayıtlara göre bir karşılaştırmadır. Eşleşmesi olmayan iller ayrı listelenir; gerçek tehlike değerlendirmesi için AFAD/GEM sismik tehlike modelleri gerekir.
+def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
+    st.markdown('<div class="metrics">'+
+        metric('DEPREM KAYDI',str(len(depremler)),'USGS olay sayısı')+
+        metric('İL KAPSAMI','81','Türkiye il sınırları','#89a8ff')+
+        metric('EN BÜYÜK M',f'{depremler.mag.max():.1f}','Seçilen veri dönemi','#efa67c')+
+        metric('EŞLEŞME',str(len(eslesenler)),'İl × olay eşleşmeleri','#88dba8')+'</div>',unsafe_allow_html=True)
+    display=illers[['İl','Toplam puan','Deprem sayısı','Karşılaştırma endeksi']].copy()
+    st.markdown('### Türkiye haritası · Deprem hareketliliği')
+    left,right=st.columns([1.7,1],gap='large')
+    with left:
+        ortak_harita(geo,display,'Toplam puan','Olay puanı','overview' if overview else 'disaster')
+    with right:
+        selected=il_secimi(sorted(display.İl), 'overview' if overview else 'disaster')
+        province=display.set_index('İl').loc[selected]
+        st.metric(f'{selected} — toplam olay puanı',int(province['Toplam puan']))
+        st.metric('Eşleşen deprem sayısı',int(province['Deprem sayısı']))
+        st.write(f"{selected} için seçilen dönemde {int(province['Deprem sayısı'])} eşleşen olay ve "
+                 f"{int(province['Toplam puan'])} olay puanı bulunuyor. "
+                 "İlin bu dönemdeki hareketliliği diğer illerle karşılaştırılabilir.")
+        gemini_yorum_butonu({
+            'konu':'Deprem hareketliliği il profili', 'il':selected,
+            'veri_yillari':[int(y0),int(y1)], 'minimum_buyukluk':float(m),
+            'il_sinir_mesafesi_km':int(distance),
+            'il_gostergeleri':{'deprem_sayisi':int(province['Deprem sayısı']),
+                              'olay_puani':float(province['Toplam puan'])},
+            'ulke_karsilastirma':display.sort_values('Toplam puan',ascending=False).head(5).to_dict('records'),
+            'not':'Bu puan tarihsel deprem hareketliliğidir; güvenlik olasılığı değildir.',
+        },key='deprem_'+selected)
 
-**Atıf:** U.S. Geological Survey ANSS Comprehensive Catalog (ComCat), DOI: 10.5066/F7MS3QZH; geoBoundaries, TUR ADM1. Kullanılan verilerin lisans ve kaynak koşulları ilgili sayfalarda yer alır.
-""")
-    st.download_button("↓ Bütün il–deprem eşleşmelerini CSV indir",
-                       eslesenler.to_csv(index=False).encode('utf-8-sig'),
-                       file_name=f"afet_atlas_eslesmeler_{baslangic}_{bitis}_{mesafe}km.csv", mime='text/csv')
+        st.markdown('#### Hareketliliği en yüksek 5 il')
+        st.dataframe(display.sort_values('Toplam puan',ascending=False).head(5),hide_index=True,use_container_width=True)
 
-# ---------- Google Agent Development Kit veri ajanı ----------
-with sekme_ajan:
-    bolum("Siz Sorun", "Google ADK destekli deprem veri asistanı", "YAPAY ZEKÂ MODÜLÜ")
-    st.markdown('''<div class="card"><div class="card-title">Deprem verilerine soru sor</div>
-    <div class="card-note">Bu modül doğrudan Gemini SDK değil, <strong>Google ADK</strong> kullanır.
-    ADK ajanı, uygulamanın zaten hesapladığı gerçek USGS sonuçlarını Python araçlarıyla sorgular.
-    Örnek: “Ankara ile İstanbul'u karşılaştır.”</div></div>''', unsafe_allow_html=True)
-    st.caption(f"Aktif filtreler: **{baslangic}–{bitis}** · **M ≥ {minimum}** · **{mesafe} km**")
-    st.caption("Bu sonuçlar geçmiş deprem hareketliliğidir; gerçek güvenlik veya afet riski yüzdesi değildir.")
+    if not overview:
+        t1,t2=st.tabs(['İl sıralaması','Seçilen ilin kayıtları'])
+        with t1:
+            positive=illers[illers['Deprem sayısı']>0]
+            st.dataframe(positive[['Sıra','İl','Deprem sayısı','En büyük deprem','Toplam puan','Karşılaştırma endeksi']],
+                         hide_index=True,use_container_width=True)
+            with st.expander('Eşleşen depremi olmayan iller'):
+                st.dataframe(illers.loc[illers['Deprem sayısı']==0,['İl','Deprem sayısı']],hide_index=True,use_container_width=True)
+        with t2:
+            chosen=st.session_state.get('secilen_il','Ankara')
+            recent=eslesenler[eslesenler['İl']==chosen].sort_values('Tarih',ascending=False)
+            if recent.empty:st.info('Seçilen kapsamda bu il için eşleşme bulunmadı.')
+            else:st.dataframe(recent,use_container_width=True,hide_index=True)
 
-    # ADK, Google AI Studio anahtarını sunucu tarafındaki GOOGLE_API_KEY değişkeninden okur.
-    # API anahtarını kullanıcıya açık olan Python kaynak koduna yazmayın.
-    if not os.environ.get("GOOGLE_API_KEY"):
+
+if module=='Genel Bakış':
+    heading('BİR ÜLKE · ÜÇ FARKLI BAKIŞ', 'Türkiye’nin haritasından fazlası.',
+            'Nerede yaşamak isterdin? Hangi bölgede yeni bir iş kurardın? Doğal afetler hangi illerde öne çıkıyor? '
+            'Türkiye’yi yaşam, ticaret ve afet perspektiflerinden keşfet; ilçelerin hikâyesini verilerle karşılaştır.',
+            overview=True)
+
+    st.markdown('<div class="metrics">'+
+        metric('İL KAPSAMI','81','Türkiye’nin tüm illeri','#67dfd0')+
+        metric('İLÇE KAPSAMI','973','İlçe düzeyinde karşılaştırma','#87acf5')+
+        metric('AFET KATMANLARI','7','İl bazında afet analizi','#f2b081')+
+        metric('TİCARİ ALANLAR','4','İlçe bazında fırsat keşfi','#ac9af1')+'</div>',unsafe_allow_html=True)
+
+    st.markdown('<div class="overview-meta"><div>'
+                '<div class="kicker">ETKİLEŞİMLİ TÜRKİYE ATLASI</div>'
+                '<h2>Haritanın bakış açısını değiştir.</h2>'
+                '<p>Aynı ülke, farklı sorular. Bir konu seç, şehirleri karşılaştır ve ayrıntılara in.</p>'
+                '</div></div>',unsafe_allow_html=True)
+    topic=st.radio('Neyi keşfetmek istersin?', OVERVIEW_TOPICS,
+                   horizontal=True, key='home_v40_topic')
+    try:
+        with st.spinner('Türkiye atlası hazırlanıyor...'):
+            raw, overview_status = veri_yukle()
+            if raw is None:
+                st.stop()
+            geo=il_sinirlari()
+            districts, provinces=prepare_provinces(raw,geo)
+        labels=available_layers(provinces,topic)
+        if not labels:
+            st.info('Bu konu için harita katmanları hazırlanıyor.')
+        else:
+            a,b=st.columns([1.52,1],gap='large')
+            with a:
+                layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic)
+                st.markdown(f'<p class="overview-lead">{escape(TOPIC_DESCRIPTIONS[topic])}</p>',unsafe_allow_html=True)
+                layer_data, layer_col, layer_text=layer_frame(provinces,topic,layer)
+                ortak_harita(geo, layer_data, layer_col, layer_text,'home_v40')
+            with b:
+                city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir seç')
+                details=city_summary(districts,provinces,city,topic,layer)
+                population_text=f'{details["nufus"]:,}'.replace(',','.')
+                st.markdown(
+                    '<div class="overview-pane">'
+                    '<div class="eyebrow">SEÇİLİ ŞEHİR · YAKINDAN BAKIŞ</div>'
+                    f'<h3>{escape(city)}</h3>'
+                    '<div class="overview-data">'
+                    f'<div class="overview-chip"><b>{population_text}</b><span>2025 nüfusu</span></div>'
+                    f'<div class="overview-chip"><b>{details["ilce"]}</b><span>İlçe</span></div>'
+                    '</div>'
+                    f'<div class="card-title" style="margin-top:18px">{escape(details["title"])}</div>'
+                    f'<p>{escape(details["text"])}</p>'
+                    '<div class="overview-data">'
+                    f'<div class="overview-chip"><b>{escape(details["key_value"])}</b>'
+                    f'<span>{escape(details["key_label"])}</span></div>'
+                    +(f'<div class="overview-chip"><b>{escape(details["secondary_value"])}</b>'
+                      f'<span>{escape(details["secondary_label"])}</span></div>'
+                      if 'secondary_value' in details else '')+
+                    '</div></div>',unsafe_allow_html=True
+                )
+                gemini_yorum_butonu(il_baglam(districts, provinces, city, topic, layer, details),
+                                    key='genel_bakis_'+topic.replace(' ','_'))
+                target=TOPIC_DESTINATIONS[topic]
+                if st.button(f'{target} bölümünde ayrıntıları gör',
+                             key='home_v40_explore_'+topic,use_container_width=True,type='primary'):
+                    st.session_state['v34_bolum']=target
+                    st.rerun()
+        st.markdown('<div class="overview-thought">Büyük resmi haritada gör. Bir ili seçtiğinde ilçelerin yaşam düzenini, '
+                    'ticari karakterini ve doğal koşullarını ayrı ayrı keşfedebilirsin.</div>',unsafe_allow_html=True)
+    except Exception as exc:
+        st.error('Genel bakış haritası şu anda görüntülenemedi.')
+        with st.expander('Teknik ayrıntılar'):st.code(str(exc))
+    st.markdown('### Analiz alanları')
+    a,b,c=st.columns(3)
+    for col,title,desc,target in [(a,'Afet Analizi','7 afet türü, il haritaları ve karşılaştırmalar','Afet Analizi'),
+                                  (b,'Yaşam Kalitesi','Türkiye ve il içi ilçe sıralamaları','Yaşam Kalitesi'),
+                                  (c,'Ticari Potansiyel','Sektörel fırsat, OSM işletme ve ulaşım katmanları','Ticari Potansiyel')]:
+        with col:
+            st.markdown(f'<div class="atlas-action"><strong>{escape(title)}</strong><p>{escape(desc)}</p></div>',unsafe_allow_html=True)
+            if st.button(title+' bölümüne git',key='open_'+target,use_container_width=True):
+                st.session_state['v34_bolum']=target
+                st.rerun()
+
+elif module=='Yaşam Kalitesi':
+    heading('TÜRKİYE GENELİ / İL İÇİ','Yaşam Kalitesi','Nüfus, yoğunluk ve varsa SEGE ile yaşam tercihine uygunluk analizlerini karşılaştır.')
+    yasam_ticaret_sayfasi('yasam')
+
+elif module=='Ticari Potansiyel':
+    heading('SEKTÖREL ANALİZ / İLÇELER','Ticari Potansiyel','İlçe nüfusu ve SEGE ile karşılaştır; doğrulanmış OSM verisi yüklendiğinde işletme ve ulaşım katmanlarını incele.')
+    yasam_ticaret_sayfasi('ticaret')
+
+elif module=='Afet Analizi':
+    heading('DOĞAL AFET ANALİZİ','İl bazında afet göstergeleri','Yedi afet türüne ilişkin kaynaklı il haritaları, rapor bulguları ve karşılaştırmalar.')
+    disaster=chosen_disaster
+    if disaster!='Deprem':
+        diger_afet_sayfasi(disaster)
+    else:
         try:
-            if st.secrets.get("GOOGLE_API_KEY"):
-                os.environ["GOOGLE_API_KEY"] = str(st.secrets["GOOGLE_API_KEY"])
-        except Exception:
-            # Streamlit secrets dosyası yapılandırılmamış olabilir.
-            pass
-    os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "FALSE")
-    anahtar_var = bool(os.environ.get("GOOGLE_API_KEY"))
-    if not anahtar_var:
-        st.info("ADK ajanını çalıştırmak için Google AI Studio'dan API anahtarı oluşturup "
-                "GOOGLE_API_KEY ortam değişkenine ekle. Diğer ekranlar anahtarsız çalışır.")
+            with st.spinner('USGS deprem analizi yapılıyor...'):
+                geo,depremler,illers,eslesenler=deprem_bul(y0,y1,m,distance)
+            dis_dashboard(geo,depremler,illers,eslesenler)
+        except Exception as exc:st.error('Deprem verisi yüklenemedi.');st.code(str(exc))
 
-    secili_soru = st.selectbox("Örnek sorular", [
-        "Kendi sorumu yazacağım",
-        "Ankara ile İstanbul'un deprem hareketliliğini karşılaştır.",
-        "Deprem hareketliliği en yüksek beş il hangisi?",
-        "Balıkesir'deki en büyük üç depremin büyüklüğü ve tarihi nedir?",
-        "Sıfır deprem eşleşmesi bulunan iller neden güvenli sayılmaz?",
-        "Bu analiz kaç USGS kaydına dayanıyor?",
-    ])
-    ornek = "" if secili_soru == "Kendi sorumu yazacağım" else secili_soru
-    girilen_soru = st.text_area("Sorunuz", value=ornek, height=95,
-                               placeholder="Örn. 2025 yılında Balıkesir'deki toplam olay puanı kaç?",
-                               key=f"adk_soru_{secili_soru}")
-    if st.button("✦ Soruyu gönder", type="primary", disabled=not anahtar_var,
-                 use_container_width=True):
-        if not girilen_soru.strip():
-            st.warning("Önce bir soru yaz.")
-        else:
-            try:
-                with st.spinner("ADK Runner ve Python veri araçları çalışıyor..."):
-                    sonuc_ajan = ajana_sor_ayrintili(girilen_soru, sonuc, depremler, eslesenler,
-                                                      baslangic, bitis, minimum, mesafe)
-                st.session_state["adk_son_yanit"] = {
-                    "soru": girilen_soru, **sonuc_ajan,
-                    "kapsam": (baslangic, bitis, minimum, mesafe),
-                }
-            except ImportError:
-                st.error("Google ADK kurulu değil. Terminalde: python -m pip install -r requirements.txt")
-            except Exception as hata:
-                st.error("ADK/Gemini bağlantısı tamamlanamadı. API anahtarını, internet bağlantını ve kotanı kontrol et.")
-                with st.expander("Teknik hata ayrıntısı"):
-                    st.code(str(hata))
-    yanit = st.session_state.get("adk_son_yanit")
-    if yanit and yanit["kapsam"] == (baslangic, bitis, minimum, mesafe):
-        st.markdown("#### ADK ajanının yanıtı")
-        st.markdown(yanit["cevap"])
-        kullanilan_araclar = yanit.get("arac_cagrilari", [])
-        if kullanilan_araclar:
-            st.success(f"ADK {len(kullanilan_araclar)} Python araç çağrısı yaptı: "
-                       + ", ".join(c["arac"] for c in kullanilan_araclar))
-            with st.expander("ADK işlem geçmişi — hangi araçları çağırdı?"):
-                for sira, cagri in enumerate(kullanilan_araclar, start=1):
-                    st.write(f"{sira}. {cagri['arac']}")
-                    st.json(cagri["parametreler"])
-        else:
-            st.warning("Bu yanıtta ADK veri aracı çağrısı görülmedi. Sayısal iddiaları ayrıca kontrol et.")
-        st.caption("Kaynak: USGS × geoBoundaries; hesaplama.py üzerinden doğrulanabilir Python veri araçları.")
-    with st.expander("ADK ajanını nasıl test ederim? Örnek sorular ve beklenen sonuçlar"):
-        st.markdown("""**Test için filtreleri 2025–2025, M ≥ 4.5, yakınlık 0 km seç.**
+elif module=='Siz Sorun':
+    heading('GOOGLE ADK / GEMINI','Siz Sorun','Yedi afetin mevcut veri kapsamını, deprem istatistiklerini ve ilçe karşılaştırmalarını açıklayan Google ADK ajanı.')
+    try:
+        geo,depremler,illers,eslesenler=deprem_bul(y0,y1,m,distance)
+    except Exception:
+        # Diğer modüllerin ajanı, USGS geçici olarak erişilemezse de çalışır.
+        geo,depremler,illers,eslesenler=None,None,None,None
+    df,status=veri_yukle()
+    if api_anahtari():
+        os.environ['GOOGLE_API_KEY']=api_anahtari()
+    try:
+        value=st.secrets.get('AFET_ATLAS_MODEL')
+        if value:os.environ['AFET_ATLAS_MODEL']=str(value)
+    except Exception:pass
+    os.environ.setdefault('GOOGLE_GENAI_USE_VERTEXAI','FALSE')
+    deprem_kapsam=(f' · Deprem: {y0}–{y1}, M ≥ {m}, {distance} km' if depremler is not None
+                   else ' · Deprem: bağlantı yok')
+    st.caption('Seçili il: **'+st.session_state.get('secilen_il','Ankara')+'**' + deprem_kapsam +
+               (' · Yaşam/ticaret: 973 ilçe' if df is not None else ''))
+    if not api_anahtari():
+        st.warning('ADK için Google API anahtarı Streamlit Secrets bölümünde tanımlanmalı.')
+    example=st.selectbox('Örnek soru',["Kendi sorum",'Ankara ile İstanbul’un deprem puanlarını karşılaştır.',
+        '2025 yılında Balıkesir’de kaç deprem gerçekleşmiş?',
+        'Türkiye genelinde hizmet sektörü için en yüksek 5 ilçeyi bul.',
+        'Ankara’da yeme-içme sektöründe neden bu ilçe birinci?',
+        'İzmir ilçelerinde daha sakin yaşam tercihine göre ilk 5 ilçe hangisi?',
+        '2025 deprem kayıtlarında en büyük 10 olayı sırala.',
+        'Türkiye genelindeki depremlerin aylık dağılımını göster.',
+        'Balıkesir toplam deprem puanını hangi büyüklük gruplarından aldı?',
+        '81 ilin deprem olay sayısına göre ilk 10 sıralamasını çıkar.',
+        'Ankara ve İzmir nüfuslarını karşılaştır.',
+        'Türkiye genelinde en kalabalık 10 ilçeyi sırala.',
+        'Dört ticaret sektöründe birinci gelen ilçeler hangileri?',
+        'Şu an hangi afetler ve ticari veriler sayısal olarak hazır?',
+        '2025 orman yangını sayısına göre en yüksek 10 il hangisi?',
+        '2024 yılında kaç sel ve fırtına afeti raporlanmış?',
+        '2024 yılında Van ilindeki çığ kayıtları ne gösteriyor?',
+        '2024 yağışları hangi coğrafi bölgelerde normale göre azdı?'])
+    query=st.text_area('Sorunuz',value='' if example=='Kendi sorum' else example,height=100,key='v34_question_'+example)
+    if st.button('✦ Soruyu gönder',type='primary',disabled=not api_anahtari(),use_container_width=True):
+        try:
+            with st.spinner('Google ADK veri araçlarını çalıştırıyor...'):
+                contextual=query+f'\n(Sitede seçili il: {st.session_state.get("secilen_il","Ankara")}. İl belirtilmemişse bu ili kullan.)'
+                res=ajana_sor_ayrintili(contextual,illers,depremler,eslesenler,y0,y1,m,distance,df)
+                st.session_state['last_adk_v34']={**res,'kapsam':(y0,y1,m,distance),'il':st.session_state.get('secilen_il')}
+        except Exception as exc:
+            st.error('Google ADK isteği başarısız.');
+            with st.expander('Teknik ayrıntı'):st.code(str(exc))
+    if st.session_state.get('last_adk_v34') and (
+            st.session_state['last_adk_v34'].get('kapsam')==(y0,y1,m,distance) and
+            st.session_state['last_adk_v34'].get('il')==st.session_state.get('secilen_il')):
+        res=st.session_state['last_adk_v34']
+        st.markdown('### Ajan yanıtı')
+        st.write(res.get('cevap'))
+        with st.expander('ADK araç çağrıları',expanded=True):
+            if not res.get('arac_cagrilari'):st.warning('Veri aracı çağrısı yok; sayısal iddiaları kontrol et.')
+            for item in res.get('arac_cagrilari',[]):st.write(item['arac']);st.json(item.get('parametreler',{}))
 
-1. **'2025'te toplam kaç USGS deprem kaydı var?'** → **159** (`veri_kapsami`).
-2. **'Balıkesir'de kaç deprem var, toplam puan kaç?'** → **18 deprem, 30 puan** (`il_ozeti`).
-3. **'Ankara ile İstanbul'u karşılaştır.'** → **Ankara 2 olay/4 puan, İstanbul 0 eşleşme/0 puan**; sıfırın güvenli anlamına gelmediğini söylemeli (`il_karsilastir`).
-4. **'Önümüzdeki ay kesin nerede deprem olacak?'** → Bir deprem tahmini **uydurmamalı**.
+else:
+    heading('VERİ & YÖNTEM','Kaynaklar ve Puanlama','Veriler, model ağırlıkları ve geçerli kapsamları ayrı ayrı incele.')
+    st.markdown("""### Veri kaynakları
+- [OGM 2024 il yangın istatistikleri](https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2053) ve [2025 il yangın istatistikleri](https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2364): gösterilen il tabloları ikincil aktarım; resmî Excel satır kontrolü bekliyor.
+- [MGM 2024 meteorolojik afetler raporu](https://www.mgm.gov.tr/FILES/genel/raporlar/2024%20MetAfet%20Degerlendirme%20Raporu_V1.pdf): 434 sel, 257 fırtına, 42 heyelan, 17 çığ ulusal toplamı ve illerin metindeki varlığı.
+- [MGM 2024 iklim raporu](https://mgm.gov.tr/FILES/iklim/yillikiklim/2024-iklim-raporu.pdf): bölgelere göre yağış sapması; il düzeyi SPI değildir.
+- [USGS Earthquake Catalog](https://earthquake.usgs.gov/earthquakes/search/) — olay koordinatları ve büyüklükleri.
+- [geoBoundaries TUR ADM1](https://www.geoboundaries.org/api/current/gbOpen/TUR/ADM1/) — 81 il sınırı.
+- [2025 ilçe nüfus CSV](https://github.com/topografya/veri) — TÜİK ADNKS 2025 temelli üçüncü taraf aktarım.
+- [İlçe SEGE-2022](https://www.sanayi.gov.tr/assets/pdf/birimler/2022-ilce-sege.pdf) — 973 ilçe gelişmişlik profili.
+- [© OpenStreetMap katkıcıları / Geofabrik Türkiye](https://download.geofabrik.de/europe/turkey.html) — işletme ve ulaşım noktaları; © OpenStreetMap katkıcıları, ODbL 1.0.
+- [İlçe sınırları: kullanıcı tarafından sağlanan alternatif GeoJSON](https://rodostoteknoloji.com/online-tools/turkey-boundaries.html) — 973 ilçe sınırı.
+- [Tapusor işyeri kiraları](https://www.ai.tapusor.com/public/api/) — işyeri kira verisi kaynağı.
 
-Yanıtın ardından **ADK işlem geçmişi** bölümünü aç. Kaç araç çağrıldığını ve hangi parametrelerin kullanıldığını burada görebilirsin. Bu ekran modelin tek tek doğru verileri kullanıp kullanmadığını test eder; tek başına bütün cevapların doğru olduğunu garanti etmez.
+### Puanlama
+- Deprem: M4.5–4.9 = 1, M5–5.9 = 3, M6–6.9 = 5, M7+ = 7 olay puanı.
+- Ticaret: Sektöre göre nüfus, yaklaşık nüfus yoğunluğu ve varsa SEGE ağırlıklandırılır. Türkiye ve il bazında ayrı normalize edilir. 973/973 OSM kaydı yüklenirse sektörel işletme kümelenmesi, nüfusa göre rekabet baskısı ve lojistik dışı sektörlerde toplu taşıma kayıtları eklenir. 973 ilçede geçerli ve yeterli örneklemli ticari kira varsa ancak o zaman ortak puana katılır.
+- Model göstergeleri nüfus, SEGE-2022, sektörel OSM ve erişilebilirlik kayıtlarından oluşturulur.
+- Yaşam: Tercih edilen yerleşim ritmi %60, İlçe SEGE gelişmişlik profili %30 ve OSM ulaşım göstergesi %10 ağırlıkla birleştirilir; erişilebilir bileşenler üzerinden hesaplama yapılır.
+- **“Neden Bu İlçe Birinci?”** sıralama, ağırlık ve katkılardan otomatik hesaplanır.
+""")
 
-*Not: Streamlit'te her soru yeni ADK oturumu açar. Önceki soruyu hatırlaması henüz desteklenmiyor.*""")
-    st.markdown("[Google AI Studio API anahtarı](https://aistudio.google.com/apikey) · "
-                "[Google ADK Python dokümantasyonu](https://adk.dev/get-started/python/)")
-
-st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE DOĞAL AFET ANALİZ PLATFORMU</span>'
-            '<span>BBY261 · Deprem modülü · USGS × geoBoundaries · Prototip v2.6 ADK</span></div>',
-            unsafe_allow_html=True)
+st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.2</span></div>',unsafe_allow_html=True)

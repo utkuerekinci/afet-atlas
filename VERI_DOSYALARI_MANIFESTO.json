@@ -1,0 +1,81 @@
+{
+  "surum": "3.6",
+  "veriler": [
+    {
+      "dosya": "afet_2024_Firtina_kaynak_kaniti.csv",
+      "byte": 9177,
+      "sha256": "097b94e62e25f45d12a1bbe19ce6163e2d9994ba8da476a7e69349ed609bff1f"
+    },
+    {
+      "dosya": "afet_2024_Heyelan_kaynak_kaniti.csv",
+      "byte": 9233,
+      "sha256": "5295cfa88f8efa48e02180e583ff6afb004870b7365cab9102898872ea4edcd6"
+    },
+    {
+      "dosya": "afet_2024_Kuraklik_kaynak_kaniti.csv",
+      "byte": 5356,
+      "sha256": "8c88f22cf974a95c9284a30571c7381588c43616029f47c13d43df9140d950a1"
+    },
+    {
+      "dosya": "afet_2024_Sel__taşkin_kaynak_kaniti.csv",
+      "byte": 9303,
+      "sha256": "c21bd5905d2889adda02889b9617afd94eb640e4aec13465cefa4d4db2a228da"
+    },
+    {
+      "dosya": "afet_2024_Çig_kaynak_kaniti.csv",
+      "byte": 8996,
+      "sha256": "f43933de4e702920c229f8d60af07a7dafb19659e90bcf07205e229f58269a80"
+    },
+    {
+      "dosya": "ilce_nufus_2025.csv",
+      "byte": 42095,
+      "sha256": "d9ea65943c4127183c13c84df655b4b0c8575e7f8540e2d58d6503e736d44cd0"
+    },
+    {
+      "dosya": "ilce_nufus_2025_sege_2022_BIRLESIK.csv",
+      "byte": 78050,
+      "sha256": "37855351167955d0539d01516749fa87b5aa1be680ccc56e78860e1626b62ae3"
+    },
+    {
+      "dosya": "ilce_sege_2022.csv",
+      "byte": 28817,
+      "sha256": "e02f438778d110dfb76ed89fc195f1759538b34862aaa71a9f27629e991f6ee1"
+    },
+    {
+      "dosya": "orman_yangini_2024_IKINCIL_KAYNAK.csv",
+      "byte": 8417,
+      "sha256": "0fa60a21b748bd28379176fe7d26fc277eedad1d14d58f292ba7067937a28a04"
+    },
+    {
+      "dosya": "orman_yangini_2025_IKINCIL_KAYNAK.csv",
+      "byte": 9169,
+      "sha256": "74a4360ffaa34a518dae4f132f418f9e8c80e9718160c3a8eaf89e6b4e76189d"
+    },
+    {
+      "dosya": "orman_yangini_2025_kontrol_tablolari.csv",
+      "byte": 1370,
+      "sha256": "5f5c38162dd232a0c27d6b51bffed2cfad05cd219870a9e18dc86534e7256566"
+    },
+    {
+      "dosya": "sege_2022_dogrulama_denetcisi.csv",
+      "byte": 36959,
+      "sha256": "0bcbd13a81793e8ab4cd14abf3833cd7169f06c1307d1db97a92f10e995a6ada"
+    },
+    {
+      "dosya": "sege_nufus_eslesme_denetimi.csv",
+      "byte": 72383,
+      "sha256": "bb5b5f41191ceac82b17898903626482118d86bb02f0d7726d37fcc1c319ef01"
+    },
+    {
+      "dosya": "turkiye_81_il.geojson",
+      "byte": 1445999,
+      "sha256": "dc685c236afcb3822836ec99e30ede10cacc7e68f4cefeb2030d4db96ba07017"
+    },
+    {
+      "dosya": "usgs_2025_m4_5.csv",
+      "byte": 29881,
+      "sha256": "69932ded84c61243992713241b3ededf6ad3e31d6a342f21e2ebc3c7722ab894"
+    }
+  ],
+  "sinir": "MGM il olay sayı tablosu yok; yangın verisi ikincil kaynak"
+}

@@ -13,10 +13,10 @@ def diger_afet_sayfasi(afet:str)->None:
     if afet not in AFETLER:raise ValueError('Afet türü yok')
     years=[2024,2025] if afet=='Orman yangını' else [2024]
     cc=st.columns([1.1,1.6,2.2])
-    with cc[0]:year=st.selectbox('Veri yılı',years,index=len(years)-1,key=f'afet_yil_{afet}')
+    with cc[0]:year=st.selectbox('Veri yılı',years,index=len(years)-1,key=f'afet_yil_{afet}',filter_mode=None)
     metric=None
     if afet=='Orman yangını':
-        with cc[1]:metric=st.selectbox('Harita göstergesi',['Yangın sayısı','Yanan alan (ha)'],key='v36_fire_metric')
+        with cc[1]:metric=st.selectbox('Harita göstergesi',['Yangın sayısı','Yanan alan (ha)'],key='v36_fire_metric',filter_mode=None)
     try:
         record=get(afet,year,metric)
     except (OSError, ValueError, KeyError, TypeError):

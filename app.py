@@ -475,21 +475,21 @@ def deprem_filtreleri() -> tuple[int,int,float,int]:
     with a:
         y0=st.selectbox('Başlangıç yılı', years,
                         index=years.index(fallback_y0) if fallback_y0 in years else years.index(2025),
-                        key='v45_year_start')
+                        key='v45_year_start',filter_mode=None)
     with b:
         valid=[v for v in years if v>=y0]
         last=fallback_y1 if fallback_y1 in valid else max(y0,2025)
-        y1=st.selectbox('Bitiş yılı',valid,index=valid.index(last),key='v45_year_end')
+        y1=st.selectbox('Bitiş yılı',valid,index=valid.index(last),key='v45_year_end',filter_mode=None)
     with c:
         magnitudes=[4.5,5.0]
         m=st.selectbox('Minimum büyüklük',magnitudes,
                        index=magnitudes.index(fallback_m) if fallback_m in magnitudes else 0,
-                       key='v45_min_m')
+                       key='v45_min_m',filter_mode=None)
     with d:
         distances=[0,50,75,100,150]
         distance=st.selectbox('İl sınırına yakınlık (km)',distances,
                               index=distances.index(fallback_d) if fallback_d in distances else 0,
-                              key='v45_distance')
+                              key='v45_distance',filter_mode=None)
     st.session_state.update(_atlas_y0=y0,_atlas_y1=y1,_atlas_m=m,_atlas_mesafe=distance)
     return y0,y1,m,distance
 
@@ -623,7 +623,7 @@ if module=='Genel Bakış':
                     st.markdown('**Harita göstergesi:** '+layer)
                 else:
                     layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic,
-                                       help='Haritada renklendirilecek veriyi seç.')
+                                       help='Haritada renklendirilecek veriyi seç.',filter_mode=None)
             with city_column:
                 city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir ara / seç')
             layer_data,layer_col,layer_text=layer_frame(provinces,topic,layer)
@@ -675,7 +675,7 @@ elif module=='Afet Analizi':
     yardim_ipucu('Afet Analizi')
     disaster=st.selectbox(
         'Afet türü', ['Deprem','Orman yangını','Sel / taşkın','Heyelan','Çığ','Fırtına','Kuraklık'],
-        key='v36_disaster',help='Haritadaki afet verisi türünü seç.')
+        key='v36_disaster',help='Haritadaki afet verisi türünü seç.',filter_mode=None)
     if disaster!='Deprem':
         diger_afet_sayfasi(disaster)
     else:

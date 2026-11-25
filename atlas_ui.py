@@ -102,7 +102,7 @@ def il_secimi(illist: list[str], key: str, label: str = 'Şehir seç'):
         st.session_state[widget_key] = chosen
     return st.selectbox(
         label, illist, key=widget_key,
-        on_change=_il_secimi_degisti, args=(widget_key,),
+        on_change=_il_secimi_degisti, args=(widget_key,), filter_mode=None,
     )
 
 
@@ -293,10 +293,10 @@ def yasam_ticaret_sayfasi(mode:str):
     else:
         filtre, ilkutusu=st.columns([1.25,1],gap='small')
     with filtre:
-        layer=st.selectbox('Harita göstergesi',options,key=mode+'_layer')
+        layer=st.selectbox('Harita göstergesi',options,key=mode+'_layer',filter_mode=None)
     if mode=='ticaret':
         with sektor_kutusu:
-            sector=st.selectbox('Analiz edilecek sektör',list(SEKTOR_AGIRLIKLARI),key='v34_sektor')
+            sector=st.selectbox('Analiz edilecek sektör',list(SEKTOR_AGIRLIKLARI),key='v34_sektor',filter_mode=None)
         province=province.merge(ticari_firsat_il_katmani(df,sector),on='İl',validate='one_to_one')
     else:
         sector='Yeme-içme'

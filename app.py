@@ -342,47 +342,6 @@ button[data-testid="stSidebarCollapseButton"]::after {
 [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stButton"] button[kind="primary"] {
  background:#3475ad!important; border-color:#9bd4fa!important;
 }
-/* v4.9: Tüm seçim kutuları ve açılan seçenekler parlak kırmızı temada. */
-[data-testid="stSelectbox"] [data-baseweb="select"] > div,
-[data-testid="stMultiSelect"] [data-baseweb="select"] > div,
-[data-testid="stSidebar"] [data-baseweb="select"] > div {
- background:#f04e66!important;
- border:1px solid #ffafb8!important;
- border-radius:11px!important;
- color:#ffffff!important;
- box-shadow:0 3px 11px rgba(232,65,89,.17)!important;
- min-height:42px!important;
-}
-[data-testid="stSelectbox"] [data-baseweb="select"] > div:hover,
-[data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover,
-[data-testid="stSidebar"] [data-baseweb="select"] > div:hover {
- background:#ff657a!important;
- border-color:#ffc2c8!important;
-}
-[data-testid="stSelectbox"] [data-baseweb="select"] *:not(svg):not(path),
-[data-testid="stMultiSelect"] [data-baseweb="select"] *:not(svg):not(path),
-[data-testid="stSidebar"] [data-baseweb="select"] *:not(svg):not(path) {
- color:#ffffff!important;
- font-weight:650!important;
- font-size:14px!important;
-}
-[data-testid="stSelectbox"] [data-baseweb="select"] svg,
-[data-testid="stSidebar"] [data-baseweb="select"] svg {
- fill:#ffffff!important;
- color:#ffffff!important;
-}
-[data-baseweb="popover"] [role="listbox"] {
- background:#251a2c!important;
- border:1px solid #f06d7e!important;
-}
-[data-baseweb="popover"] [role="option"]:hover,
-[data-baseweb="popover"] [role="option"][aria-selected="true"] {
- background:#bd304d!important;
-}
-@media(max-width:670px){
- [data-testid="stSelectbox"] [data-baseweb="select"] > div {min-height:40px!important;}
-}
-
 </style>
 """, unsafe_allow_html=True)
 

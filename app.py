@@ -305,19 +305,20 @@ button[data-testid="stSidebarCollapseButton"]::after {
 
 /* v4.7: Navigasyon hiyerarşisi — analizler mavi, diğer menü düğmeleri kırmızı. */
 [data-testid="stSidebar"] [data-testid="stButton"] button {
- background:#572f3c!important; border:1px solid #a95666!important;
- color:#ffedf0!important; border-radius:12px!important;
+ background:#df4059!important; border:1px solid #fb7284!important;
+ color:#ffffff!important; border-radius:12px!important;
  min-height:43px!important; transition:background .15s,border-color .15s!important;
+ box-shadow:0 3px 12px rgba(229,65,87,.13)!important;
 }
 [data-testid="stSidebar"] [data-testid="stButton"] button:hover {
- background:#7d3c4c!important; border-color:#e88392!important;
+ background:#f04e66!important; border-color:#ff9bab!important;
 }
 [data-testid="stSidebar"] [data-testid="stButton"] button p,
 [data-testid="stSidebar"] [data-testid="stButton"] button span {
- font-size:14px!important; font-weight:700!important; letter-spacing:.008em!important;
+ font-size:15px!important; font-weight:750!important; letter-spacing:.008em!important;
 }
 [data-testid="stSidebar"] [data-testid="stButton"] button[kind="primary"] {
- background:#9b4054!important; border-color:#f2939c!important;
+ background:#f04e66!important; border-color:#ffafb8!important;
 }
 /* Analizler bölümü: kendi alt sayfalarıyla birlikte aydınlık mavi. */
 [data-testid="stSidebar"] [data-testid="stExpander"] summary {
@@ -339,6 +340,46 @@ button[data-testid="stSidebarCollapseButton"]::after {
 }
 [data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stButton"] button[kind="primary"] {
  background:#3475ad!important; border-color:#9bd4fa!important;
+}
+/* v4.9: Tüm seçim kutuları ve açılan seçenekler parlak kırmızı temada. */
+[data-testid="stSelectbox"] [data-baseweb="select"] > div,
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-baseweb="select"] > div {
+ background:#df4059!important;
+ border:1px solid #fb7284!important;
+ border-radius:11px!important;
+ color:#ffffff!important;
+ box-shadow:0 3px 11px rgba(232,65,89,.17)!important;
+ min-height:42px!important;
+}
+[data-testid="stSelectbox"] [data-baseweb="select"] > div:hover,
+[data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover,
+[data-testid="stSidebar"] [data-baseweb="select"] > div:hover {
+ background:#f04e66!important;
+ border-color:#ffc2c8!important;
+}
+[data-testid="stSelectbox"] [data-baseweb="select"] *:not(svg):not(path),
+[data-testid="stMultiSelect"] [data-baseweb="select"] *:not(svg):not(path),
+[data-testid="stSidebar"] [data-baseweb="select"] *:not(svg):not(path) {
+ color:#ffffff!important;
+ font-weight:650!important;
+ font-size:14px!important;
+}
+[data-testid="stSelectbox"] [data-baseweb="select"] svg,
+[data-testid="stSidebar"] [data-baseweb="select"] svg {
+ fill:#ffffff!important;
+ color:#ffffff!important;
+}
+[data-baseweb="popover"] [role="listbox"] {
+ background:#251a2c!important;
+ border:1px solid #f06d7e!important;
+}
+[data-baseweb="popover"] [role="option"]:hover,
+[data-baseweb="popover"] [role="option"][aria-selected="true"] {
+ background:#aa334e!important;
+}
+@media(max-width:670px){
+ [data-testid="stSelectbox"] [data-baseweb="select"] > div {min-height:40px!important;}
 }
 
 </style>
@@ -607,8 +648,11 @@ if module=='Genel Bakış':
             geo=il_sinirlari()
             districts,provinces=prepare_provinces(raw,geo)
         labels=available_layers(provinces,topic)
+        if topic == 'Ticari hareketlilik' and not overview_status.get('osm_aktif', False):
+            st.info('OSM kayıtları şu anda kullanılamıyor. Haritada mevcut nüfus ve SEGE göstergelerine '
+                    'dayanan sektörel ön değerlendirmeleri görebilirsin. OSM dosyalarını Yönetici Paneli’nden kontrol edebilirsin.')
         if not labels:
-            st.info('Bu alana ait harita katmanı henüz hazır değil.')
+            st.warning('Seçilen keşif alanında doğrulanmış harita verisi bulunamadı. Veri kaynağını Yönetici Paneli’nden kontrol et.')
         else:
             filter_column,city_column=st.columns([1.3,1],gap='small')
             with filter_column:

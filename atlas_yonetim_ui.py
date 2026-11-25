@@ -141,8 +141,10 @@ def admin_page(settings: Settings):
     except DataRepositoryError as exc:
         st.error(str(exc))
         return
-    tabs=st.tabs(['Veri setleri','Veri yükle / güncelle','Sürüm geçmişi','Kurulum bilgisi'])
-    with tabs[0]:
+    st.info('📤 Veri yüklemek veya güncellemek için aşağıdaki **Veri yükle / güncelle** sekmesini kullan. '
+            'Önce dosyayı seçip doğrula, ardından onayla ve özel veri deposuna yayınla.')
+    tabs=st.tabs(['📤 Veri yükle / güncelle','📂 Veri setleri','🕘 Sürüm geçmişi','⚙️ Kurulum bilgisi'])
+    with tabs[1]:
         st.markdown('#### Yönetilebilir veri kaynakları')
         for name,spec in DATASETS.items():
             status=('Devre dışı' if name in disabled else 'Özel depoda' if name in index else
@@ -167,7 +169,10 @@ def admin_page(settings: Settings):
             st.divider()
         st.caption('Temel veri dosyaları silinmez; hatalı güncelleme geçmişteki sürüme döndürülür. ' 
                    'İsteğe bağlı veriler yayından kaldırılabilir.')
-    with tabs[1]:
+    with tabs[0]:
+        st.markdown('#### 📤 Yeni veri yükle veya mevcut veriyi güncelle')
+        st.caption('1 · Veri türünü seç  →  2 · CSV/JSON dosyasını yükle  →  '
+                   '3 · Dosyayı Kontrol Et  →  4 · Yayınla')
         names=list(DATASETS)
         selected=st.selectbox('Veri seti türü',names,format_func=lambda n:DATASETS[n]['title'])
         filetype=selected.rsplit('.',1)[-1]

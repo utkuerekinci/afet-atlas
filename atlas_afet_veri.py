@@ -63,8 +63,9 @@ def key(s:str)->str:
     s=str(s).replace('İ','I').replace('ı','i').replace('â','a')
     return ''.join(c for c in unicodedata.normalize('NFKD',s).lower() if not unicodedata.combining(c) and c.isalpha())
 
-def provinces()->list[str]:
-    data=json.loads((DATA/'turkiye_81_il.geojson').read_text(encoding='utf-8'))
+def provinces(data_dir: Path | None = None)->list[str]:
+    root = data_dir if data_dir is not None else DATA
+    data=json.loads((root/'turkiye_81_il.geojson').read_text(encoding='utf-8'))
     names=sorted(f['properties']['shapeName'] for f in data['features'])
     if len(names)!=81 or len(set(names))!=81:raise ValueError('81 il geometrisi bekleniyor')
     return names
@@ -79,12 +80,12 @@ def region_map()->dict[str,str]:
     if set(d)!=expected:raise ValueError(f'Bölge/il eşleşmesi: eksik={expected-set(d)} fazla={set(d)-expected}')
     return d
 
-def fire(year:int)->pd.DataFrame:
+def fire(year:int, data_dir: Path | None = None)->pd.DataFrame:
     if year not in (2024,2025):raise ValueError('Orman yangını yalnızca 2024 ve 2025 ön inceleme dosyalarına sahip')
-    path=DATA/f'orman_yangini_{year}_IKINCIL_KAYNAK.csv'
+    path=(data_dir if data_dir is not None else DATA)/f'orman_yangini_{year}_IKINCIL_KAYNAK.csv'
     d=pd.read_csv(path)
     if len(d)!=81 or d['yil'].nunique()!=1 or int(d['yil'].iloc[0])!=year:raise ValueError('Yangın dosyası yıl/kapsam hatası')
-    names={key(n):n for n in provinces()}
+    names={key(n):n for n in provinces(data_dir)}
     d['İl']=d['il'].apply(lambda n:names.get(key(n)))
     if d['İl'].isna().any() or d['İl'].nunique()!=81:raise ValueError('Yangın dosyası 81 il eşleşmesi başarısız')
     d['Yangın sayısı']=pd.to_numeric(d['yangin_sayisi'],errors='coerce')

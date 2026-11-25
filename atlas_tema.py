@@ -72,7 +72,11 @@ ORTAK_KONTROL_CSS = r"""<style>
   background: transparent !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
-  caret-color: #ffffff !important;
+  /* filter_mode=None zaten klavye girisini kapatir. Gorunur yazi imlecini de gizle. */
+  caret-color: transparent !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
   font-weight: 700 !important;
   font-size: 15px !important;
 }

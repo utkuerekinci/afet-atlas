@@ -13,6 +13,13 @@ from plotly.colors import sample_colorscale
 from shapely.geometry import shape
 
 PALET = [[0.0,"#20354c"],[0.24,"#277080"],[0.54,"#57a69b"],[0.77,"#f5bb79"],[1.0,"#ea7566"]]
+# Nüfusta lacivertin koyu uçlarını açan özel geçiş. Diğer harita türleri orijinal paleti korur.
+NUFUS_PALET = [[0.0,"#426885"],[0.24,"#4c93a6"],[0.54,"#78b9ac"],[0.77,"#f5bb79"],[1.0,"#ea7566"]]
+
+
+def gosterge_paleti(gosterge: str):
+    return NUFUS_PALET if 'nüfus' in str(gosterge).casefold() else PALET
+
 
 def katman_haritasi(sinirlar: dict, tablo: pd.DataFrame, deger: str,
                     etiket: str, secilen_il: str | None = None) -> go.Figure:
@@ -41,7 +48,7 @@ def katman_haritasi(sinirlar: dict, tablo: pd.DataFrame, deger: str,
             x += [p[0]*scale_x for p in part.exterior.coords] + [None]
             y += [p[1] for p in part.exterior.coords] + [None]
         v=values.get(il, np.nan)
-        fill='#263243' if pd.isna(v) else sample_colorscale(PALET,[max(0.,min(1.,(float(v)-low)/(high-low)))])[0]
+        fill='#263243' if pd.isna(v) else sample_colorscale(gosterge_paleti(deger),[max(0.,min(1.,(float(v)-low)/(high-low)))])[0]
         fig.add_trace(go.Scatter(x=x,y=y,mode='lines',fill='toself',name=il,showlegend=False,
             line=dict(width=1.5 if il==secilen_il else 0.65,color='#8df6e7' if il==secilen_il else '#101b2d'),
             fillcolor=fill,hoveron='fills',hovertemplate=f'<b>{il}</b><br>{etiket}: '+('Veri yok' if pd.isna(v) else f'{float(v):,.1f}')+'<extra></extra>'))
@@ -59,7 +66,7 @@ def katman_haritasi(sinirlar: dict, tablo: pd.DataFrame, deger: str,
         selected=dict(marker=dict(opacity=1)),unselected=dict(marker=dict(opacity=.65))
     ))
     fig.add_trace(go.Scatter(x=[None],y=[None],showlegend=False,mode='markers',hoverinfo='skip',
-        marker=dict(color=[low],cmin=low,cmax=high,colorscale=PALET,showscale=True,
+        marker=dict(color=[low],cmin=low,cmax=high,colorscale=gosterge_paleti(deger),showscale=True,
                     colorbar=dict(title=dict(text=etiket,font=dict(color='#c1d8de',size=10)),len=.56,
                                   thickness=10,x=1.01,outlinewidth=0,tickfont=dict(color='#cadce9')))))
     fig.update_layout(height=490,margin=dict(l=1,r=16,t=6,b=3),

@@ -10,3 +10,8 @@ PyMuPDF>=1.24,<2
 
 # İsteğe bağlı Gemini açıklama motoru (Google ADK de bunu kullanır)
 google-genai>=1.0,<3
+# Tam il poligonlarından tıklamalı, sabit Leaflet atlası
+folium>=0.17,<1
+streamlit-folium>=0.24,<1
+# Yönetici girişinde Argon2id güvenli şifre özeti
+argon2-cffi>=23.1,<26

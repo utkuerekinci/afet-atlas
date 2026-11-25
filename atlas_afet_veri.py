@@ -5,6 +5,7 @@ listede olmayan il = sıfır olay DEĞİLDİR. Yangın CSV'leri ikincil aktarım
 resmî XLSX satır doğrulaması yapılmadığından 'ön inceleme' niteliğindedir.
 """
 from __future__ import annotations
+import os
 from pathlib import Path
 import json
 import math
@@ -12,7 +13,7 @@ import unicodedata
 import pandas as pd
 
 ROOT=Path(__file__).resolve().parent
-DATA=ROOT/'indirilen_veriler'
+DATA=Path(os.environ.get('AFET_ATLAS_DATA_DIR') or (ROOT/'indirilen_veriler'))
 MGM_URL='https://www.mgm.gov.tr/FILES/genel/raporlar/2024%20MetAfet%20Degerlendirme%20Raporu_V1.pdf'
 OGM_URL={2024:'https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2053',2025:'https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2364'}
 AFETLER=['Orman yangını','Sel / taşkın','Heyelan','Çığ','Fırtına','Kuraklık']

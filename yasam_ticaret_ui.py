@@ -10,7 +10,7 @@ from bolge_puanlari import ticari_on_endeks, yasam_tercih_endeksi, SEKTOR_AGIRLI
 
 
 @st.cache_data(ttl=21600, show_spinner=False)
-def _population():
+def _population(data_version: str = ""):
     return fetch_population()
 
 
@@ -22,10 +22,11 @@ def _grafik(data:pd.DataFrame, x:str, title:str, y:str='ilce'):
     vis = data.head(15).iloc[::-1].copy()
     fig=px.bar(vis,x=x,y=y,orientation='h',labels={x:title,y:'İlçe'},
                hover_data=['nufus'] if x!='nufus' else None, template='plotly_dark')
-    fig.update_traces(marker_color='#65e6d5')
+    fig.update_traces(marker_color='#65e6d5',hovertemplate='<b>%{y}</b><br>Puan: %{x:.1f}<extra></extra>')
     fig.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
                       font_color='#cde6ed',height=min(690,max(340, len(vis)*34)), margin=dict(l=0,r=18,t=15,b=10))
-    st.plotly_chart(fig,use_container_width=True,config={'displaylogo':False})
+    fig.update_layout(dragmode=False,xaxis=dict(fixedrange=True,showticklabels=False,showgrid=False),yaxis=dict(fixedrange=True))
+    st.plotly_chart(fig,use_container_width=True,config={'displayModeBar':False,'scrollZoom':False,'doubleClick':False,'displaylogo':False})
 
 
 def show_page(mode:str='yasam'):
@@ -33,7 +34,8 @@ def show_page(mode:str='yasam'):
         raise ValueError('Tanımsız modül')
     try:
         with st.spinner('Türkiye ilçe verileri alınıyor...'):
-            pop=_population()
+            from atlas_yonetim_depo import runtime_version
+            pop=_population(runtime_version())
     except Exception as exc:
         st.error('İlçe nüfusu kaynağına erişilemedi. Bu bölümün veri kaynağını yenilemek gerekiyor.')
         with st.expander('Bağlantı ayrıntısı'):

@@ -5,12 +5,13 @@ Kira CSV'si yalnızca referans gösterilir; kısmi kira ulusal endekse girmez.
 """
 from __future__ import annotations
 import json
+import os
 from pathlib import Path
 import pandas as pd
 from ilce_veri import normalize_name
 
 ROOT=Path(__file__).resolve().parent
-DATA=ROOT/'indirilen_veriler'
+DATA=Path(os.environ.get('AFET_ATLAS_DATA_DIR') or (ROOT/'indirilen_veriler'))
 OSM_CSV=DATA/'ticaret_osm_ilce.csv'
 OSM_META=DATA/'ticaret_osm_manifest.json'
 KIRA_CSV=DATA/'ticaret_kira_ilce.csv'

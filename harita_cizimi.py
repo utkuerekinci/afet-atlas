@@ -89,7 +89,7 @@ def turkiye_haritasi(sinirlar: dict, sonuc: pd.DataFrame) -> go.Figure:
         font=dict(color="#d9e7f5", family="DM Sans"),
         xaxis=dict(visible=False, constrain="domain"),
         yaxis=dict(visible=False, scaleanchor="x", scaleratio=1),
-        dragmode="pan",
+        dragmode=False, clickmode="event+select",
         hoverlabel=dict(bgcolor="#142c44", font=dict(color="#f4f8ff", size=13)),
     )
     return fig

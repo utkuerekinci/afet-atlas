@@ -9,7 +9,30 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+
+st.set_page_config(
+    page_title="Afet Atlas | Türkiye Bölgesel Analiz ve Karar Destek Platformu",
+    page_icon="🌍",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# Kaynak kod ve özel veri deposu ayrıdır. Güncel veri deposu gerekirse uygulama
+# modülleri import edilmeden önce geçici, doğrulanmış okuma alanına alınır.
+from atlas_yonetim_depo import settings_from_secrets, initialize_remote_data
+try:
+    _atlas_data_settings = settings_from_secrets(st.secrets)
+    _atlas_data_changed = initialize_remote_data(_atlas_data_settings)
+    if _atlas_data_changed:
+        st.cache_data.clear()
+except Exception:
+    # Özel depoya erişim kesilse bile herkese açık analiz arayüzü çalışabilsin.
+    # Yönetici ekranı bağlantı sorununu ayrıca bildirecek.
+    from atlas_yonetim_depo import Settings
+    _atlas_data_settings = Settings()
+
 from hesaplama import puanlari_hesapla
+from atlas_deprem_kayitlari import secilen_il_kayitlari, hareketliligi_yuksek_bes_il
 from harita_cizimi import turkiye_haritasi
 from afet_atlas_adk.calistir import ajana_sor_ayrintili
 from veri import depremleri_getir, il_sinirlarini_getir
@@ -20,12 +43,6 @@ from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
 from genel_bakis import (OVERVIEW_TOPICS, TOPIC_DESCRIPTIONS, TOPIC_DESTINATIONS,
                          prepare_provinces, available_layers, layer_frame, city_summary)
 
-st.set_page_config(
-    page_title="Afet Atlas | Türkiye Bölgesel Analiz ve Karar Destek Platformu",
-    page_icon="🌍",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
 # Yalnızca görsel tasarım: hesaplamalar hesaplama.py dosyasında tutulur.
 st.markdown("""
@@ -43,7 +60,7 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] {
     color: #dce6f3;
 }
 [data-testid="stHeader"] {background:transparent;}
-[data-testid="stMain"] .block-container {max-width:1380px; padding:1.05rem 2.2rem 5rem;}
+[data-testid="stMain"] .block-container {max-width:1300px; padding:1.15rem 1.7rem 4rem;}
 [data-testid="stSidebar"] {background:#0d1828; border-right:1px solid #26354b;}
 [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {padding-top:1.6rem;}
 [data-testid="stSidebar"] p {color:#acbdd2;}
@@ -54,7 +71,7 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] {
 [data-testid="stSidebar"] hr {border-color:#27384e;}
 [data-testid="stExpander"] {background:#101d30; border:1px solid #24364c; border-radius:18px;}
 [data-testid="stDataFrame"] {border:1px solid #2a3a53; border-radius:16px; overflow:hidden;}
-[data-testid="stMetric"] {background:#111e31; border:1px solid #26364d; padding:18px; border-radius:18px;}
+[data-testid="stMetric"] {background:#111e31; border:1px solid #26364d; padding:11px 13px; border-radius:13px;}
 [data-testid="stMetricLabel"] {color:#a6bdd0;}
 [data-testid="stMetricValue"] {color:#f4f8fe;}
 [data-testid="stAlert"] {border-radius:14px;}
@@ -161,6 +178,169 @@ a {color:#7ce8d9!important;}
 .overview-thought {color:#86c8c5;font-size:12px;letter-spacing:.015em;margin:13px 0 16px;line-height:1.65;}
 @media(max-width:1000px){.atlas-orbit{width:200px;height:200px;margin-left:12px}.atlas-orbit .orbit-center{inset:65px 62px}.atlas-orbit .orbit-node{padding:10px 11px}}
 @media(max-width:700px){.atlas-orbit{display:none}.overview-pane{padding:16px}}
+
+/* v4.5: Streamlit'in iki oklu gerçek KENAR MENÜ düğmesini anlaşılır hamburger olarak göster.
+   Yalnızca görünümü değiştirir; yerleşik aç/kapat işlevi ve erişilebilir buton kalır.
+   Birkaç Streamlit sürümünün test-id'si desteklenir. */
+:is([data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"], [data-testid="stExpandSidebarButton"]) button,
+button[data-testid="stSidebarCollapsedControl"], button[data-testid="stSidebarCollapseButton"], button[data-testid="stExpandSidebarButton"] {
+  background:#842f3d!important; color:#fff9f8!important;
+  border:1px solid #db6f72!important; border-radius:11px!important;
+  min-height:37px!important; min-width:39px!important;
+  display:inline-flex!important; align-items:center!important; justify-content:center!important;
+  box-shadow:0 2px 12px rgba(214,84,95,.23)!important;
+}
+:is([data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"], [data-testid="stExpandSidebarButton"]) button:hover,
+button[data-testid="stSidebarCollapsedControl"]:hover,
+button[data-testid="stSidebarCollapseButton"]:hover, button[data-testid="stExpandSidebarButton"]:hover {background:#a8404b!important;}
+:is([data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"],
+    [data-testid="stSidebarCollapseButton"], [data-testid="stExpandSidebarButton"]) button > *,
+button[data-testid="stSidebarCollapsedControl"] > *,
+button[data-testid="stSidebarCollapseButton"] > *, button[data-testid="stExpandSidebarButton"] > * {display:none!important;}
+:is([data-testid="collapsedControl"], [data-testid="stSidebarCollapsedControl"], [data-testid="stExpandSidebarButton"]) button::after,
+button[data-testid="stSidebarCollapsedControl"]::after, button[data-testid="stExpandSidebarButton"]::after {
+  content:"☰"; font-size:20px; line-height:1; font-weight:800; color:#fff!important;
+}
+[data-testid="stSidebarCollapseButton"] button::after,
+button[data-testid="stSidebarCollapseButton"]::after {
+  content:"✕"; font-size:16px; line-height:1; font-weight:700; color:#fff!important;
+}
+/* Analizler: v4.3'teki nötr açılır/kapanır menü tasarımına dönüş. */
+[data-testid="stSidebar"] [data-testid="stExpander"] summary {
+  background:#101d30!important; border-radius:10px!important;
+  border-color:#2b415a!important; color:#dce6f3!important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {background:#1c3046!important;}
+.atlas-selection-summary {padding:16px 19px; margin-top:3px; min-height:132px;
+  background:linear-gradient(120deg,#112d3a,#14283a); border:1px solid #2c5767;
+  border-radius:15px;}
+.atlas-selection-summary .eyebrow{color:#80dbc8;font-weight:800;letter-spacing:.14em;font-size:10px;}
+.atlas-selection-summary .winner{color:#f4fbff;font-weight:750;font-size:clamp(1.15rem,2.1vw,1.65rem);margin:7px 0 2px;}
+.atlas-selection-summary .detail{color:#b6d6de;font-size:12px;}
+.atlas-selection-summary .hint{color:#88a8bb;font-size:11px;line-height:1.55;margin-top:12px;}
+/* v4.6: v4.2.1'deki orijinal TR / Yaşam / Ticaret / Afet yörünge görseli. */
+.atlas-orbit {position:relative;flex:none;width:250px;height:236px;margin:0 7px 0 25px;}
+.atlas-orbit .orbit-ring {position:absolute;inset:17px 18px 16px 15px;border:1px dashed rgba(104,217,206,.36);border-radius:50%;transform:rotate(-17deg);}
+.atlas-orbit .orbit-ring.inner {inset:52px 55px 50px 52px;border:1px solid rgba(104,217,206,.22);transform:none;}
+.atlas-orbit .orbit-center {position:absolute;inset:83px 79px 80px 78px;background:linear-gradient(145deg,#204e5b,#123247);border:1px solid #5cc9be;border-radius:24px;display:flex;align-items:center;justify-content:center;flex-direction:column;box-shadow:0 0 35px rgba(102,224,213,.16);}
+.orbit-center strong {font-family:'Space Grotesk',sans-serif;font-size:28px;line-height:1;color:#e8fff9;}
+.orbit-center span {font-size:9px;letter-spacing:.11em;color:#8dcdcb;margin-top:4px;}
+.orbit-node {position:absolute;z-index:2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;letter-spacing:.04em;box-shadow:0 8px 24px rgba(0,0,0,.25);border-radius:13px;padding:13px 16px;}
+.orbit-node.life {top:4px;right:14px;color:#b2fff0;background:#184a48;border:1px solid #419e92;}
+.orbit-node.trade {bottom:13px;right:0;color:#ffe4b7;background:#503b37;border:1px solid #9a7860;}
+.orbit-node.disaster {bottom:36px;left:-4px;color:#d0d6ff;background:#283954;border:1px solid #5c709e;}
+
+/* Mevcut sade v4.5 kahraman bölümünde, metinle yörüngeyi dengeli yerleştir. */
+.hero-return {display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:258px;}
+.hero-return-copy {flex:1 1 0;min-width:0;}
+.hero-return .atlas-orbit {flex:0 0 250px;margin:0 4px 0 12px;}
+@media(max-width:1020px) {
+ .hero-return .atlas-orbit {flex:0 0 205px;width:205px;height:205px;margin:0;}
+ .hero-return .orbit-center {inset:66px 65px 66px 64px;}
+ .hero-return .orbit-node {font-size:10px;padding:10px;}
+}
+@media(max-width:750px){
+ .hero-return {display:block;min-height:0;}
+ /* Dar ekranlarda halkaları küçültmek yerine aynı dört etiketi okunabilir mini kartlara çevir. */
+ .hero-return .atlas-orbit {display:flex;flex-wrap:wrap;align-items:center;
+   width:100%;height:auto;min-height:0;gap:8px;margin:16px 0 0;}
+ .hero-return .orbit-ring {display:none;}
+ .hero-return .orbit-center {position:static;inset:auto;display:flex;flex-direction:column;
+   width:auto;height:auto;padding:8px 12px;border-radius:11px;}
+ .hero-return .orbit-center strong {font-size:15px;}
+ .hero-return .orbit-center span {font-size:8px;}
+ .hero-return .orbit-node {position:static;font-size:10px;padding:11px 12px;box-shadow:none;}
+}
+.hero-return {padding:23px 30px 21px; margin:4px 0 17px; border-radius:20px;
+  border:1px solid #31596b; background:linear-gradient(110deg,#173047 0%,#11243b 64%,#164152 100%);}
+.hero-return .overline{letter-spacing:.16em;font-size:10px;}
+.hero-return h1{font-family:'Space Grotesk',sans-serif!important;font-size:clamp(2.4rem,5vw,4.15rem)!important;
+  font-weight:800;letter-spacing:-.065em;line-height:1.04;margin:11px 0 5px!important;}
+.hero-return h1 em{font-style:normal;color:#71e6d9;}
+.hero-return h2{font-size:clamp(1.15rem,2.2vw,1.65rem)!important;margin:11px 0 5px!important;}
+.hero-return p{font-size:13px;color:#c5d7e4;max-width:950px;line-height:1.65;margin:3px 0;}
+@media(max-width:670px){.hero-return{padding:16px 17px}.hero-return p{font-size:12px}}
+/* v4.3 — sade ve farklı ekranlara uyumlu başlık, kart ve menü */
+.compact-hero {border:1px solid #25435a; border-radius:17px; padding:19px 23px;
+ background:linear-gradient(120deg,#132d40,#0e2034);margin:4px 0 17px;}
+.compact-hero h1 {font-size:clamp(1.5rem,2.8vw,2.25rem)!important;line-height:1.16;
+ margin:5px 0 7px!important;letter-spacing:-.045em;}
+.compact-hero p {font-size:13px;color:#b2c7d8;max-width:860px;margin:0;line-height:1.55;}
+.compact-hero .overline {font-size:10px;letter-spacing:.12em;}
+/* Map filters stay next to the map (not inside the narrow left navigation). */
+.filter-strip-title {display:flex;justify-content:space-between;gap:12px;align-items:center;
+  padding:10px 13px 4px; margin:9px 0 0;
+  font-size:11px;font-weight:800;letter-spacing:.12em;color:#82eadb;}
+.filter-strip-title span {letter-spacing:normal;color:#8bafc1;font-weight:500;}
+@media(max-width:670px){.filter-strip-title span{display:none;}}
+.quick-facts {display:flex;gap:9px;flex-wrap:wrap;margin:6px 0 13px;}
+.quick-facts span {background:#122639;border:1px solid #315166;color:#c4e5e3;
+ border-radius:99px;padding:7px 12px;font-size:12px;font-weight:600;}
+.compact-summary {background:#102336;border:1px solid #2b4a60;border-radius:15px;
+ padding:17px 20px;margin:12px 0 18px;}
+.compact-summary h3 {font-size:1.24rem!important;margin:0 0 7px!important;}
+.compact-summary p {font-size:13px;color:#bfd2df;margin:0 0 10px;line-height:1.65;}
+.compact-summary strong {color:#e8fbf7;}
+[data-testid="stSidebar"] [data-testid="stButton"] button {min-height:37px;}
+[data-testid="stSidebar"] [data-testid="stExpander"] {border-radius:11px;}
+[data-testid="stMetricValue"] {font-size:clamp(1.05rem,1.65vw,1.55rem)!important;}
+[data-testid="stMetricLabel"] {font-size:.75rem!important;}
+@media (max-width:1100px) {
+ [data-testid="stMain"] .block-container {padding:.85rem 1.05rem 3rem;max-width:100%;}
+ [data-testid="stHorizontalBlock"] {flex-wrap:wrap!important;gap:.85rem!important;}
+ [data-testid="stHorizontalBlock"] [data-testid="stColumn"] {min-width:min(100%,300px)!important;flex:1 1 100%!important;width:100%!important;}
+ .metrics{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .atlas-action{min-height:0;padding:13px 16px;}
+}
+@media (max-width:670px) {
+ .compact-hero {padding:14px 16px;border-radius:14px;}
+ .compact-summary{padding:13px;}
+ [data-testid="stMain"] .block-container{padding:.75rem .75rem 2.6rem;}
+ .overview-pane{padding:12px;}
+ .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+ .metric{padding:11px;min-height:85px;}.metric-value{font-size:1.5rem;}
+}
+
+/* v4.7: Navigasyon hiyerarşisi — analizler mavi, diğer menü düğmeleri kırmızı. */
+[data-testid="stSidebar"] [data-testid="stButton"] button {
+ background:#572f3c!important; border:1px solid #a95666!important;
+ color:#ffedf0!important; border-radius:12px!important;
+ min-height:43px!important; transition:background .15s,border-color .15s!important;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button:hover {
+ background:#7d3c4c!important; border-color:#e88392!important;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button p,
+[data-testid="stSidebar"] [data-testid="stButton"] button span {
+ font-size:14px!important; font-weight:700!important; letter-spacing:.008em!important;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button[kind="primary"] {
+ background:#9b4054!important; border-color:#f2939c!important;
+}
+/* Analizler bölümü: kendi alt sayfalarıyla birlikte aydınlık mavi. */
+[data-testid="stSidebar"] [data-testid="stExpander"] summary {
+ background:#204b76!important; border:1px solid #438bc1!important;
+ border-radius:12px!important; color:#f1f8ff!important; padding:11px 13px!important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {
+ background:#2b608f!important; border-color:#73b9ee!important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] summary p,
+[data-testid="stSidebar"] [data-testid="stExpander"] summary span {
+ font-size:15px!important;font-weight:800!important; color:#f2f9ff!important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stButton"] button {
+ background:#193d62!important; border-color:#3b76a9!important; color:#e4f4ff!important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stButton"] button:hover {
+ background:#275986!important; border-color:#6bb0e4!important;
+}
+[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stButton"] button[kind="primary"] {
+ background:#3475ad!important; border-color:#9bd4fa!important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -199,58 +379,143 @@ def hesapla(depremler: pd.DataFrame, sinirlar: dict, mesafe: int):
     return puanlari_hesapla(depremler, sinirlar, mesafe)
 
 
+def github_kod_deposu_baglantisi() -> str:
+    """Güvenli biçimde yalnızca projenin açıkça yapılandırılmış GitHub URL'sini göster."""
+    from urllib.parse import urlsplit
+    try:
+        value = str(st.secrets.get('AFET_ATLAS_KOD_REPOSU', '')).strip()
+    except (FileNotFoundError, KeyError):
+        value = ''
+    # Afet Atlas'ın ziyaretçilere açık kaynak kod deposu; ayrı özel veri deposu değildir.
+    value = value or os.environ.get('AFET_ATLAS_KOD_REPOSU', '').strip()
+    value = value or 'https://github.com/utkuerekinci/afet-atlas'
+    try:
+        parsed = urlsplit(value)
+    except ValueError:
+        return ''
+    sections = [part for part in parsed.path.split('/') if part]
+    if (parsed.scheme == 'https' and parsed.netloc.lower() == 'github.com'
+            and len(sections) == 2 and not parsed.username and not parsed.password
+            and not parsed.query and not parsed.fragment):
+        return value.rstrip('/')
+    return ''
 
 
 
 
-# ---------- v3.4 Modüller / harita çapında ortak il seçimi ----------
-MODULES=['Genel Bakış','Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel','Siz Sorun','Veri ve Yöntem']
+
+
+# ---------- v4.3: yerleşik hamburger ile açılan menü + katlanabilir analizler ----------
+MODULES=['Genel Bakış','Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel','Siz Sorun','Yardım','Veri ve Yöntem','Yönetici Girişi']
 if 'secilen_il' not in st.session_state:
     st.session_state['secilen_il']='Ankara'
+if st.session_state.get('v34_bolum') not in MODULES:
+    st.session_state['v34_bolum']='Genel Bakış'
+module=st.session_state['v34_bolum']
+
+
+def git_modul(target: str) -> None:
+    st.session_state['v34_bolum']=target
+    st.rerun()
+
+
 with st.sidebar:
     st.markdown('<div class="overline"><span class="dot"></span> BBY261 · İLERİ PROGRAMLAMA</div>'
                 '<div class="sidebar-head">AFET ATLAS</div>'
-                '<div class="sidebar-small">Bölgesel Analiz ve Karar Destek</div>',unsafe_allow_html=True)
-    module=st.radio('Bölüm',MODULES,key='v34_bolum')
+                '<div class="sidebar-small">☰ Menü · Bölümler</div>',unsafe_allow_html=True)
+    if st.button('⌂  Genel Bakış',key='nav_home',type='primary' if module=='Genel Bakış' else 'secondary',use_container_width=True):
+        git_modul('Genel Bakış')
+    with st.expander('▾  Analizler',expanded=module in ('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
+        for caption,target in [('🌦️ Afet Analizi','Afet Analizi'),('🏡 Yaşam Kalitesi','Yaşam Kalitesi'),('🏪 Ticari Potansiyel','Ticari Potansiyel')]:
+            if st.button(caption,key='nav_'+target,type='primary' if module==target else 'secondary',use_container_width=True):
+                git_modul(target)
+    # v4.6: v4.5'te yanlışlıkla görünmez hâle gelen üç sayfa bağlantısı geri getirildi.
+    # Veri ve Yöntem ve Yardım sayfalarının kendisi zaten mevcut; menü düğmeleri eksikti.
+    for caption,target in [('✦  Siz Sorun','Siz Sorun'),('ⓘ  Yardım','Yardım'),
+                           ('▤  Veri ve Yöntem','Veri ve Yöntem')]:
+        if st.button(caption,key='nav_'+target,
+                     type='primary' if module==target else 'secondary',
+                     use_container_width=True):
+            git_modul(target)
     st.divider()
-    st.markdown('<div class="sidebar-label">SEÇİLİ BÖLGE</div>',unsafe_allow_html=True)
-    st.write('**'+st.session_state.get('secilen_il','Ankara')+'**')
-    if module=='Afet Analizi':
-        chosen_disaster=st.selectbox('Afet türü',['Deprem','Orman yangını','Sel / taşkın','Heyelan','Çığ','Fırtına','Kuraklık'],key='v36_disaster')
-    else:
-        chosen_disaster='Deprem'
-    if (module=='Afet Analizi' and chosen_disaster=='Deprem') or module=='Siz Sorun':
-        st.markdown('<div class="sidebar-label">DEPREM FİLTRELERİ</div>',unsafe_allow_html=True)
-        years=list(range(2015,date.today().year+1))
-        y0=st.selectbox('Başlangıç yılı',years,index=years.index(2025),key='v34_year_start')
-        valid=[x for x in years if x>=y0]
-        y1=st.selectbox('Bitiş yılı',valid,index=valid.index(max(2025,y0)),key='v34_year_end')
-        m=st.selectbox('Minimum büyüklük',[4.5,5.0],key='v34_min_m')
-        distance=st.select_slider('İl sınırına yakınlık (km)',options=[0,50,75,100,150],value=0,key='v34_distance')
-    else:
-        y0,y1,m,distance=2025,2025,4.5,0
-
-    st.divider()
-    st.caption('Veri → Analiz → Harita → Açıklama · v4.2')
+    if st.button('🔒  Yönetici Girişi',key='nav_admin',
+                 type='primary' if module=='Yönetici Girişi' else 'secondary',use_container_width=True):
+        git_modul('Yönetici Girişi')
+    st.caption('Seçili il: '+st.session_state.get('secilen_il','Ankara'))
+    # Afet türü ve deprem filtreleri v4.5'teki gibi haritanın yakınında kalır.
 
 
-def heading(section:str,text:str,description:str,overview:bool=False):
-    illustration = (
-        '<div class="atlas-orbit" aria-hidden="true"><div class="orbit-ring"></div>'
-        '<div class="orbit-ring inner"></div>'
-        '<div class="orbit-center"><strong>TR</strong><span>KEŞFET</span></div>'
-        '<div class="orbit-node life">YAŞAM</div><div class="orbit-node trade">TİCARET</div>'
-        '<div class="orbit-node disaster">AFET</div></div>'
-        if overview else
-        '<div class="radar"><div class="radar-line-h"></div><div class="radar-line-v"></div>'
-        '<div class="radar-core"></div><div class="radar-ping"></div></div>'
+def deprem_kapsami() -> tuple[int,int,float,int]:
+    """Deprem filtresi için varsayılan ve sayfalar arası güvenli değerler."""
+    return (int(st.session_state.get('_atlas_y0', 2025)),
+            int(st.session_state.get('_atlas_y1', 2025)),
+            float(st.session_state.get('_atlas_m', 4.5)),
+            int(st.session_state.get('_atlas_mesafe', 0)))
+
+
+def deprem_filtreleri() -> tuple[int,int,float,int]:
+    """USGS/ArcGIS örneklerindeki gibi haritanın üstünde kompakt filtre şeridi."""
+    years=list(range(2015,date.today().year+1))
+    fallback_y0, fallback_y1, fallback_m, fallback_d=deprem_kapsami()
+    # Yıl değişince bitiş yılı otomatik olarak geçerli aralıkta tutulur.
+    banner,reset=st.columns([4.6,1],gap='small',vertical_alignment='center')
+    with banner:
+        st.markdown('<div class="filter-strip-title">◉ HARİTA FİLTRELERİ <span>Yıl, büyüklük ve yakınlık</span></div>',unsafe_allow_html=True)
+    with reset:
+        if st.button('↺ Sıfırla',key='v45_reset_deprem',help='2025 yılı ve M ≥ 4.5 başlangıç filtrelerine dön.',use_container_width=True):
+            for key in ('v45_year_start','v45_year_end','v45_min_m','v45_distance'):
+                st.session_state.pop(key,None)
+            st.session_state.update(_atlas_y0=2025,_atlas_y1=2025,_atlas_m=4.5,_atlas_mesafe=0)
+            st.rerun()
+    a,b,c,d=st.columns([1,1,1,1],gap='small')
+    with a:
+        y0=st.selectbox('Başlangıç yılı', years,
+                        index=years.index(fallback_y0) if fallback_y0 in years else years.index(2025),
+                        key='v45_year_start')
+    with b:
+        valid=[v for v in years if v>=y0]
+        last=fallback_y1 if fallback_y1 in valid else max(y0,2025)
+        y1=st.selectbox('Bitiş yılı',valid,index=valid.index(last),key='v45_year_end')
+    with c:
+        magnitudes=[4.5,5.0]
+        m=st.selectbox('Minimum büyüklük',magnitudes,
+                       index=magnitudes.index(fallback_m) if fallback_m in magnitudes else 0,
+                       key='v45_min_m')
+    with d:
+        distances=[0,50,75,100,150]
+        distance=st.selectbox('İl sınırına yakınlık (km)',distances,
+                              index=distances.index(fallback_d) if fallback_d in distances else 0,
+                              key='v45_distance')
+    st.session_state.update(_atlas_y0=y0,_atlas_y1=y1,_atlas_m=m,_atlas_mesafe=distance)
+    return y0,y1,m,distance
+
+
+
+def heading(section: str, text: str, description: str, overview: bool=False):
+    """Sabit büyük radar yerine her çözünürlükte kısa, anlaşılır sayfa başlığı."""
+    title='Türkiye’yi keşfet.' if overview else text
+    st.markdown(
+        '<section class="compact-hero">'
+        f'<div class="overline">{escape(section)}</div>'
+        f'<h1>{escape(title)}</h1>'
+        f'<p>{escape(description)}</p></section>',
+        unsafe_allow_html=True,
     )
-    st.markdown(f'<div class="hero"><div class="hero-text">'
-                f'<div class="overline"><span class="dot"></span>{escape(section)}</div>'
-                f'<h1>AFET <em>ATLAS.</em></h1>'
-                f'<div class="module-title">{escape(text)}</div>'
-                f'<p>{escape(description)}</p></div>'
-                f'{illustration}</div>',unsafe_allow_html=True)
+
+
+def yardim_ipucu(konu: str) -> None:
+    metinler={
+        'Genel Bakış': 'Yaşam, Ticaret veya Afet seç. Göstergenin değişmesi haritayı günceller. Bir ilin renkli alanına tıklayarak kısa özetini aç, ardından Ayrıntıya Git ile devam et.',
+        'Afet Analizi': 'Afet Analizi sayfasının başındaki Afet türü alanından konuyu seç. Deprem için başlangıç ve bitiş yılı, minimum büyüklük ve il sınırı yakınlığı filtreleri haritanın hemen üstünde bulunur. Haritada bir ile tıkla, kayıtlarını aşağıda incele.',
+        'Yaşam Kalitesi': 'Şehri ve yaşam tercihini seç. Seçilen il için Neden Bu İlçe Birinci? açıklaması sağdadır. Aşağı kaydırıp Türkiye genelindeki veya il içindeki enleri ve İki ilçeyi karşılaştır bölümünü aç; önce il, ardından ilçe seç. Çubukların üzerine gelerek puanları incele.',
+        'Ticari Potansiyel': 'İl ve sektör seç. Harita göstergesinde sektörel fırsat puanını, nüfusu, gelişmişliği veya OSM kayıtlarını inceleyebilirsin. Neden Bu İlçe Birinci? açıklaması sağdadır. Aşağı kaydırıp İki ilçeyi karşılaştır bölümünde önce il, ardından ilçe seç. İşletme sayılarını açılır bölümde görebilirsin.',
+        'Siz Sorun': 'Örnek soru seç veya kendi sorunu yaz. Soruyu Gönder düğmesiyle Afet Atlas asistanından cevap al.',
+        'Veri ve Yöntem': 'Veri kaynaklarını ve puanlamanın nasıl yapıldığını bu bölümde inceleyebilirsin.',
+    }
+    with st.popover('ⓘ Nasıl kullanılır?',use_container_width=False):
+        st.write(metinler.get(konu,'Bu sayfadaki göstergeleri seçerek karşılaştırma yapabilirsin.'))
+        if st.button('Yardım sayfasını aç',key='help_from_'+konu):
+            git_modul('Yardım')
 
 
 def deprem_bul(y0:int,y1:int,m:float,d:int):
@@ -260,24 +525,32 @@ def deprem_bul(y0:int,y1:int,m:float,d:int):
 
 
 def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
-    st.markdown('<div class="metrics">'+
-        metric('DEPREM KAYDI',str(len(depremler)),'USGS olay sayısı')+
-        metric('İL KAPSAMI','81','Türkiye il sınırları','#89a8ff')+
-        metric('EN BÜYÜK M',f'{depremler.mag.max():.1f}','Seçilen veri dönemi','#efa67c')+
-        metric('EŞLEŞME',str(len(eslesenler)),'İl × olay eşleşmeleri','#88dba8')+'</div>',unsafe_allow_html=True)
+    """Harita, seçilen ilin gerçek deprem kayıtları ve ikincil ülke karşılaştırması."""
+    st.markdown('<div class="quick-facts">'
+                f'<span>{len(depremler)} deprem kaydı</span><span>81 il</span>'
+                f'<span>En büyük M {depremler.mag.max():.1f}</span>'
+                f'<span>{len(eslesenler)} il-olay eşleşmesi</span></div>',unsafe_allow_html=True)
     display=illers[['İl','Toplam puan','Deprem sayısı','Karşılaştırma endeksi']].copy()
-    st.markdown('### Türkiye haritası · Deprem hareketliliği')
-    left,right=st.columns([1.7,1],gap='large')
-    with left:
-        ortak_harita(geo,display,'Toplam puan','Olay puanı','overview' if overview else 'disaster')
-    with right:
-        selected=il_secimi(sorted(display.İl), 'overview' if overview else 'disaster')
+    selected=il_secimi(sorted(display.İl),'overview' if overview else 'disaster',label='Haritada incelenecek il')
+    ortak_harita(geo,display,'Toplam puan','Olay puanı','overview' if overview else 'disaster')
+    selected=st.session_state.get('secilen_il',selected)
+    with st.container(border=True):
         province=display.set_index('İl').loc[selected]
-        st.metric(f'{selected} — toplam olay puanı',int(province['Toplam puan']))
-        st.metric('Eşleşen deprem sayısı',int(province['Deprem sayısı']))
-        st.write(f"{selected} için seçilen dönemde {int(province['Deprem sayısı'])} eşleşen olay ve "
-                 f"{int(province['Toplam puan'])} olay puanı bulunuyor. "
-                 "İlin bu dönemdeki hareketliliği diğer illerle karşılaştırılabilir.")
+        a,b=st.columns(2)
+        a.metric(f'{selected} · olay puanı',int(province['Toplam puan']))
+        b.metric('Eşleşen deprem sayısı',int(province['Deprem sayısı']))
+        st.write(f"{selected} için seçilen zaman ve yakınlık filtrelerinde "
+                 f"{int(province['Deprem sayısı'])} eşleşen deprem bulunuyor.")
+        st.markdown('#### '+selected+' · Deprem kayıtları')
+        recent=secilen_il_kayitlari(eslesenler,selected)
+        if recent.empty:
+            st.info('Seçilen yıl, büyüklük ve yakınlık filtrelerinde bu il için kayıt bulunmadı.')
+        else:
+            st.dataframe(recent.head(8),hide_index=True,use_container_width=True,
+                         height=min(350,80+35*min(len(recent),8)))
+            if len(recent)>8:
+                with st.expander(f'Tüm {len(recent)} kaydı görüntüle'):
+                    st.dataframe(recent,hide_index=True,use_container_width=True)
         gemini_yorum_butonu({
             'konu':'Deprem hareketliliği il profili', 'il':selected,
             'veri_yillari':[int(y0),int(y1)], 'minimum_buyukluk':float(m),
@@ -287,12 +560,8 @@ def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
             'ulke_karsilastirma':display.sort_values('Toplam puan',ascending=False).head(5).to_dict('records'),
             'not':'Bu puan tarihsel deprem hareketliliğidir; güvenlik olasılığı değildir.',
         },key='deprem_'+selected)
-
-        st.markdown('#### Hareketliliği en yüksek 5 il')
-        st.dataframe(display.sort_values('Toplam puan',ascending=False).head(5),hide_index=True,use_container_width=True)
-
     if not overview:
-        t1,t2=st.tabs(['İl sıralaması','Seçilen ilin kayıtları'])
+        t1,t2=st.tabs(['İl sıralaması','Hareketliliği en yüksek 5 il'])
         with t1:
             positive=illers[illers['Deprem sayısı']>0]
             st.dataframe(positive[['Sıra','İl','Deprem sayısı','En büyük deprem','Toplam puan','Karşılaştırma endeksi']],
@@ -300,107 +569,106 @@ def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
             with st.expander('Eşleşen depremi olmayan iller'):
                 st.dataframe(illers.loc[illers['Deprem sayısı']==0,['İl','Deprem sayısı']],hide_index=True,use_container_width=True)
         with t2:
-            chosen=st.session_state.get('secilen_il','Ankara')
-            recent=eslesenler[eslesenler['İl']==chosen].sort_values('Tarih',ascending=False)
-            if recent.empty:st.info('Seçilen kapsamda bu il için eşleşme bulunmadı.')
-            else:st.dataframe(recent,use_container_width=True,hide_index=True)
+            st.dataframe(hareketliligi_yuksek_bes_il(display),hide_index=True,use_container_width=True)
 
 
 if module=='Genel Bakış':
-    heading('BİR ÜLKE · ÜÇ FARKLI BAKIŞ', 'Türkiye’nin haritasından fazlası.',
-            'Nerede yaşamak isterdin? Hangi bölgede yeni bir iş kurardın? Doğal afetler hangi illerde öne çıkıyor? '
-            'Türkiye’yi yaşam, ticaret ve afet perspektiflerinden keşfet; ilçelerin hikâyesini verilerle karşılaştır.',
-            overview=True)
-
-    st.markdown('<div class="metrics">'+
-        metric('İL KAPSAMI','81','Türkiye’nin tüm illeri','#67dfd0')+
-        metric('İLÇE KAPSAMI','973','İlçe düzeyinde karşılaştırma','#87acf5')+
-        metric('AFET KATMANLARI','7','İl bazında afet analizi','#f2b081')+
-        metric('TİCARİ ALANLAR','4','İlçe bazında fırsat keşfi','#ac9af1')+'</div>',unsafe_allow_html=True)
-
-    st.markdown('<div class="overview-meta"><div>'
-                '<div class="kicker">ETKİLEŞİMLİ TÜRKİYE ATLASI</div>'
-                '<h2>Haritanın bakış açısını değiştir.</h2>'
-                '<p>Aynı ülke, farklı sorular. Bir konu seç, şehirleri karşılaştır ve ayrıntılara in.</p>'
-                '</div></div>',unsafe_allow_html=True)
-    topic=st.radio('Neyi keşfetmek istersin?', OVERVIEW_TOPICS,
-                   horizontal=True, key='home_v40_topic')
+    st.markdown(
+        '<section class="hero-return">'
+        '<div class="hero-return-copy">'
+        '<div class="overline"><span class="dot"></span> BİR ÜLKE · ÜÇ FARKLI BAKIŞ</div>'
+        '<h1>AFET <em>ATLAS.</em></h1>'
+        '<h2>Türkiye’nin haritasından fazlası.</h2>'
+        '<p>Nerede yaşamak isterdin? Hangi bölgede yeni bir iş kurardın? '
+        'Doğal afetler hangi illerde öne çıkıyor? Türkiye’yi yaşam, ticaret ve afet '
+        'perspektiflerinden keşfet; ilçelerin hikâyesini verilerle karşılaştır.</p>'
+        '</div>'
+        '<div class="atlas-orbit" aria-hidden="true">'
+        '<div class="orbit-ring"></div><div class="orbit-ring inner"></div>'
+        '<div class="orbit-center"><strong>TR</strong><span>KEŞFET</span></div>'
+        '<div class="orbit-node life">YAŞAM</div>'
+        '<div class="orbit-node trade">TİCARET</div>'
+        '<div class="orbit-node disaster">AFET</div>'
+        '</div></section>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="metrics">'
+        + metric('İl','81','Türkiye genelinde','#65e6d5')
+        + metric('İlçe','973','İlçe karşılaştırmaları','#75afeb')
+        + metric('Afet türü','7','İl düzeyi afet katmanları','#ef8b7a')
+        + metric('Ticari sektör','4','Sektörel karşılaştırmalar','#f1c27e')
+        + '</div>', unsafe_allow_html=True)
+    yardim_ipucu('Genel Bakış')
+    topic=st.radio('Keşif alanı',OVERVIEW_TOPICS,horizontal=True,key='home_v40_topic')
     try:
         with st.spinner('Türkiye atlası hazırlanıyor...'):
-            raw, overview_status = veri_yukle()
+            raw, overview_status=veri_yukle()
             if raw is None:
                 st.stop()
             geo=il_sinirlari()
-            districts, provinces=prepare_provinces(raw,geo)
+            districts,provinces=prepare_provinces(raw,geo)
         labels=available_layers(provinces,topic)
         if not labels:
-            st.info('Bu konu için harita katmanları hazırlanıyor.')
+            st.info('Bu alana ait harita katmanı henüz hazır değil.')
         else:
-            a,b=st.columns([1.52,1],gap='large')
-            with a:
-                layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic)
-                st.markdown(f'<p class="overview-lead">{escape(TOPIC_DESCRIPTIONS[topic])}</p>',unsafe_allow_html=True)
-                layer_data, layer_col, layer_text=layer_frame(provinces,topic,layer)
-                ortak_harita(geo, layer_data, layer_col, layer_text,'home_v40')
-            with b:
-                city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir seç')
-                details=city_summary(districts,provinces,city,topic,layer)
-                population_text=f'{details["nufus"]:,}'.replace(',','.')
-                st.markdown(
-                    '<div class="overview-pane">'
-                    '<div class="eyebrow">SEÇİLİ ŞEHİR · YAKINDAN BAKIŞ</div>'
-                    f'<h3>{escape(city)}</h3>'
-                    '<div class="overview-data">'
-                    f'<div class="overview-chip"><b>{population_text}</b><span>2025 nüfusu</span></div>'
-                    f'<div class="overview-chip"><b>{details["ilce"]}</b><span>İlçe</span></div>'
-                    '</div>'
-                    f'<div class="card-title" style="margin-top:18px">{escape(details["title"])}</div>'
-                    f'<p>{escape(details["text"])}</p>'
-                    '<div class="overview-data">'
-                    f'<div class="overview-chip"><b>{escape(details["key_value"])}</b>'
-                    f'<span>{escape(details["key_label"])}</span></div>'
-                    +(f'<div class="overview-chip"><b>{escape(details["secondary_value"])}</b>'
-                      f'<span>{escape(details["secondary_label"])}</span></div>'
-                      if 'secondary_value' in details else '')+
-                    '</div></div>',unsafe_allow_html=True
-                )
-                gemini_yorum_butonu(il_baglam(districts, provinces, city, topic, layer, details),
-                                    key='genel_bakis_'+topic.replace(' ','_'))
-                target=TOPIC_DESTINATIONS[topic]
-                if st.button(f'{target} bölümünde ayrıntıları gör',
-                             key='home_v40_explore_'+topic,use_container_width=True,type='primary'):
-                    st.session_state['v34_bolum']=target
-                    st.rerun()
-        st.markdown('<div class="overview-thought">Büyük resmi haritada gör. Bir ili seçtiğinde ilçelerin yaşam düzenini, '
-                    'ticari karakterini ve doğal koşullarını ayrı ayrı keşfedebilirsin.</div>',unsafe_allow_html=True)
+            filter_column,city_column=st.columns([1.3,1],gap='small')
+            with filter_column:
+                layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic,
+                                   help='Haritada renklendirilecek veriyi seç.')
+            with city_column:
+                city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir ara / seç')
+            layer_data,layer_col,layer_text=layer_frame(provinces,topic,layer)
+            ortak_harita(geo,layer_data,layer_col,layer_text,'home_v40')
+            # Harita tıklaması rerun üretir; dolayısıyla gösterilen şehir her zaman günceldir.
+            city=st.session_state.get('secilen_il',city)
+            details=city_summary(districts,provinces,city,topic,layer)
+            population_text=f'{details["nufus"]:,}'.replace(',','.')
+            words=str(details['text']).split('. ')
+            short='.'.join([]) if not words else '. '.join(words[:2]).rstrip('.')+'.'
+            st.markdown(
+                '<div class="compact-summary">'
+                f'<h3>{escape(city)}</h3>'
+                f'<p><strong>{population_text}</strong> nüfus · <strong>{details["ilce"]}</strong> ilçe '
+                f'· {escape(str(details["key_label"]))}: <strong>{escape(str(details["key_value"]))}</strong></p>'
+                f'<p>{escape(short)}</p></div>',unsafe_allow_html=True,
+            )
+            if st.button('Ayrıntıya Git →',type='primary',key='home_v43_details',use_container_width=True):
+                git_modul(TOPIC_DESTINATIONS[topic])
+            gemini_yorum_butonu(il_baglam(districts,provinces,city,topic,layer,details),
+                                key='genel_bakis_'+topic.replace(' ','_'))
     except Exception as exc:
         st.error('Genel bakış haritası şu anda görüntülenemedi.')
-        with st.expander('Teknik ayrıntılar'):st.code(str(exc))
+        with st.expander('Teknik ayrıntılar'): st.code(str(exc))
     st.markdown('### Analiz alanları')
     a,b,c=st.columns(3)
     for col,title,desc,target in [(a,'Afet Analizi','7 afet türü, il haritaları ve karşılaştırmalar','Afet Analizi'),
                                   (b,'Yaşam Kalitesi','Türkiye ve il içi ilçe sıralamaları','Yaşam Kalitesi'),
-                                  (c,'Ticari Potansiyel','Sektörel fırsat, OSM işletme ve ulaşım katmanları','Ticari Potansiyel')]:
+                                  (c,'Ticari Potansiyel','Sektörel fırsat, işletme ve ulaşım katmanları','Ticari Potansiyel')]:
         with col:
             st.markdown(f'<div class="atlas-action"><strong>{escape(title)}</strong><p>{escape(desc)}</p></div>',unsafe_allow_html=True)
             if st.button(title+' bölümüne git',key='open_'+target,use_container_width=True):
-                st.session_state['v34_bolum']=target
-                st.rerun()
+                git_modul(target)
 
 elif module=='Yaşam Kalitesi':
     heading('TÜRKİYE GENELİ / İL İÇİ','Yaşam Kalitesi','Nüfus, yoğunluk ve varsa SEGE ile yaşam tercihine uygunluk analizlerini karşılaştır.')
+    yardim_ipucu('Yaşam Kalitesi')
     yasam_ticaret_sayfasi('yasam')
 
 elif module=='Ticari Potansiyel':
     heading('SEKTÖREL ANALİZ / İLÇELER','Ticari Potansiyel','İlçe nüfusu ve SEGE ile karşılaştır; doğrulanmış OSM verisi yüklendiğinde işletme ve ulaşım katmanlarını incele.')
+    yardim_ipucu('Ticari Potansiyel')
     yasam_ticaret_sayfasi('ticaret')
 
 elif module=='Afet Analizi':
     heading('DOĞAL AFET ANALİZİ','İl bazında afet göstergeleri','Yedi afet türüne ilişkin kaynaklı il haritaları, rapor bulguları ve karşılaştırmalar.')
-    disaster=chosen_disaster
+    yardim_ipucu('Afet Analizi')
+    disaster=st.selectbox(
+        'Afet türü', ['Deprem','Orman yangını','Sel / taşkın','Heyelan','Çığ','Fırtına','Kuraklık'],
+        key='v36_disaster',help='Haritadaki afet verisi türünü seç.')
     if disaster!='Deprem':
         diger_afet_sayfasi(disaster)
     else:
+        st.markdown('#### Türkiye haritası · Deprem hareketliliği')
+        y0,y1,m,distance=deprem_filtreleri()
         try:
             with st.spinner('USGS deprem analizi yapılıyor...'):
                 geo,depremler,illers,eslesenler=deprem_bul(y0,y1,m,distance)
@@ -408,7 +676,9 @@ elif module=='Afet Analizi':
         except Exception as exc:st.error('Deprem verisi yüklenemedi.');st.code(str(exc))
 
 elif module=='Siz Sorun':
+    y0,y1,m,distance=deprem_kapsami()
     heading('GOOGLE ADK / GEMINI','Siz Sorun','Yedi afetin mevcut veri kapsamını, deprem istatistiklerini ve ilçe karşılaştırmalarını açıklayan Google ADK ajanı.')
+    yardim_ipucu('Siz Sorun')
     try:
         geo,depremler,illers,eslesenler=deprem_bul(y0,y1,m,distance)
     except Exception:
@@ -465,8 +735,48 @@ elif module=='Siz Sorun':
             if not res.get('arac_cagrilari'):st.warning('Veri aracı çağrısı yok; sayısal iddiaları kontrol et.')
             for item in res.get('arac_cagrilari',[]):st.write(item['arac']);st.json(item.get('parametreler',{}))
 
+elif module=='Yönetici Girişi':
+    from atlas_yonetim_ui import admin_page
+    admin_page(_atlas_data_settings)
+
+elif module=='Yardım':
+    heading('KULLANIM REHBERİ','Afet Atlas nasıl kullanılır?',
+            'Birkaç adımda haritayı keşfet, sonuçları karşılaştır ve sorularını yanıtla.')
+    st.markdown('#### Başlamak için')
+    st.write('Sol üstteki menü simgesine tıklayarak sayfaları açabilirsin. '
+             'Analizler başlığını genişletip ilgilendiğin alanı seç.')
+    steps=[
+        ('1 · Haritayı keşfet','Genel Bakış sayfasında Yaşam, Ticaret veya Afet seç. Harita göstergesini değiştir. Bir ilin renkli alanına tıkla. Harita sürüklenmez; sadece ili seçer.'),
+        ('2 · İl ayrıntılarına geç','Kısa il özetinin altındaki Ayrıntıya Git düğmesine bas. Aynı il ilgili analiz sayfasında korunur.'),
+        ('3 · Afetleri incele','Menüden Analizler → Afet Analizi bölümünü seç. Açılan sayfada Afet türünü belirle. Deprem için yıl, büyüklük ve yakınlık filtrelerini haritanın üstünden ayarla. Seçtiğin ilin deprem kayıtları haritanın hemen altında görünür.'),
+        ('4 · Yaşam koşullarını karşılaştır','Yaşam Kalitesi bölümünde şehir ve yaşam tercihini seç. Birincilik açıklaması tercihin yanında gösterilir. Aşağı kaydırıp Türkiye veya il içi sıralamalardaki İki ilçeyi karşılaştır alanında önce il, ardından ilçe seç.'),
+        ('5 · Ticari potansiyeli keşfet','Ticari Potansiyel bölümünde sektörünü seç. Harita göstergelerinden fırsat puanı, nüfus, SEGE veya OSM kayıtlarını incele. Aşağı kaydırarak İki ilçeyi karşılaştır bölümünde önce il, sonra ilçe seç; işletme sayılarını açılır bölümden incele.'),
+        ('6 · Sonuçları yorumla','Yaşam ve ticarette seçili ilin birincilik açıklaması tercih veya sektör seçiminin yanında görünür. Aşağı kaydırarak İki ilçeyi karşılaştır bölümüne geç. Daha fazla bilgi için Gemini düğmesine bas.'),
+        ('7 · Asistana soru sor','Siz Sorun bölümünde örnek sorulardan birini seç veya kendi sorunu yaz. Soruyu Gönder düğmesini kullan.'),
+    ]
+    for title,text in steps:
+        with st.expander(title,expanded=title.startswith('1')):
+            st.write(text)
+    st.markdown('#### Sık sorulan sorular')
+    with st.expander('Harita neden sürüklenmiyor?'):
+        st.write('Harita seçimi kolaylaştırmak için sabit tutulur. Bir ilin herhangi bir renkli alanına tıklayabilir veya şehir seçim kutusunu kullanabilirsin.')
+    with st.expander('İlçe sıralamaları nerede?'):
+        st.write('Yaşam Kalitesi ve Ticari Potansiyel sayfalarında aşağı kaydır; Türkiye geneli ve Seçilen ildeki enler sekmelerini incele. İki ilçeyi karşılaştır bölümünde önce il, sonra ilçe seç.')
+    with st.expander('Gemini yorumu nasıl çalışır?'):
+        st.write('Yalnızca Gemini ile daha fazla bilgi düğmesine basınca çalışır. İstersen mevcut Python açıklamalarını da okuyabilirsin.')
+    st.markdown('#### Proje ve kaynak kod')
+    st.write('Afet Atlas\'ın geliştirme dosyalarını, proje açıklamalarını ve sürüm geçmişini GitHub üzerinden inceleyebilirsin.')
+    repo_link = github_kod_deposu_baglantisi()
+    if repo_link:
+        st.link_button('↗ GitHub’da kaynak kodu görüntüle', repo_link, use_container_width=True)
+    else:
+        st.caption('Kaynak kod bağlantısı, proje GitHub adresi tanımlandığında burada görünecek.')
+    if st.button('Haritaya dön',type='primary',key='v43_back_home'):
+        git_modul('Genel Bakış')
+
 else:
     heading('VERİ & YÖNTEM','Kaynaklar ve Puanlama','Veriler, model ağırlıkları ve geçerli kapsamları ayrı ayrı incele.')
+    yardim_ipucu('Veri ve Yöntem')
     st.markdown("""### Veri kaynakları
 - [OGM 2024 il yangın istatistikleri](https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2053) ve [2025 il yangın istatistikleri](https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2364): gösterilen il tabloları ikincil aktarım; resmî Excel satır kontrolü bekliyor.
 - [MGM 2024 meteorolojik afetler raporu](https://www.mgm.gov.tr/FILES/genel/raporlar/2024%20MetAfet%20Degerlendirme%20Raporu_V1.pdf): 434 sel, 257 fırtına, 42 heyelan, 17 çığ ulusal toplamı ve illerin metindeki varlığı.
@@ -487,4 +797,4 @@ else:
 - **“Neden Bu İlçe Birinci?”** sıralama, ağırlık ve katkılardan otomatik hesaplanır.
 """)
 
-st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.2</span></div>',unsafe_allow_html=True)
+st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.8</span></div>',unsafe_allow_html=True)

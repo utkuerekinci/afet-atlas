@@ -4,13 +4,14 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 import io
+import os
 import json
 import time
 
 import pandas as pd
 import requests
 
-VERI_KLASORU = Path(__file__).resolve().parent / 'indirilen_veriler'
+VERI_KLASORU = Path(os.environ.get('AFET_ATLAS_DATA_DIR') or (Path(__file__).resolve().parent / 'indirilen_veriler'))
 USGS_URL = 'https://earthquake.usgs.gov/fdsnws/event/1/query'
 SINIR_API = 'https://www.geoboundaries.org/api/current/gbOpen/TUR/ADM1/'
 

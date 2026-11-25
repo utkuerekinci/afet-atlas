@@ -26,29 +26,18 @@ def diger_afet_sayfasi(afet:str)->None:
                                      'MGM yıllık raporu' if record['tip']=='rapor_kaniti' else 'MGM iklim raporu (bölge ortalaması)'))
         st.markdown(f'[Kaynak belgesi / arşiv]({record["kaynak"]})')
     if record['tip']=='ikincil_sayisal':
-        x,y,z=st.columns(3)
-        with x:st.metric('2024–2025 kayıt yılı',str(year))
-        with y:st.metric('Türkiye toplam yangın',f'{record["ulusal_toplam"]:,}'.replace(',','.'))
-        with z:st.metric('Sayı verisi bulunan il',str(int(df['Yangın sayısı'].notna().sum()))+'/81')
-
+        st.caption(f'{year} · Türkiye toplam yangın: {record["ulusal_toplam"]:,} · Kayıtlı il: {known}/81')
     elif record['tip']=='rapor_kaniti':
-        c1,c2=st.columns(2)
-        with c1:st.metric('Türkiye 2024 raporlu afet sayısı',str(record['ulusal_toplam']))
-        with c2:st.metric('Metinde adı belirtilen il',f'{known}/81')
-
+        st.caption(f'{year} · Rapordaki toplam afet: {record["ulusal_toplam"]} · İl bulgusu: {known}/81')
     else:
-        c1,c2=st.columns(2)
-        with c1:st.metric('Yıl','2024')
-        with c2:st.metric('Gözlem düzeyi','7 coğrafi bölge')
+        st.caption('2024 · Bölgesel yağış değişimi')
 
-
-    left,right=st.columns([1.74,1],gap='large')
-    with left:
-        st.markdown('### Türkiye haritası · '+afet)
-        ortak_harita(il_sinirlari(),df[['İl',col]].copy(),col,record['birim'],f'v36_{afet}_{year}_{col}')
-    with right:
-        city=il_secimi(sorted(df.İl.tolist()),f'v36_{afet}_{year}')
-        row=df.set_index('İl').loc[city]
+    city=il_secimi(sorted(df.İl.tolist()),f'v36_{afet}_{year}',label='Şehir ara / seç')
+    st.markdown('#### Türkiye haritası · '+afet)
+    ortak_harita(il_sinirlari(),df[['İl',col]].copy(),col,record['birim'],f'v36_{afet}_{year}_{col}')
+    city=st.session_state.get('secilen_il',city)
+    row=df.set_index('İl').loc[city]
+    with st.container(border=True):
         st.markdown('#### '+city+' · '+afet)
         if record['tip']=='ikincil_sayisal':
             if pd.notna(row['Yangın sayısı']):

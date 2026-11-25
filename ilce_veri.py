@@ -5,6 +5,7 @@ Sadece doğrulanmış değerler gösterilir. Hiçbir kayıt tahminle doldurulmaz
 from __future__ import annotations
 
 from io import BytesIO
+import os
 import json
 from pathlib import Path
 import re
@@ -14,7 +15,7 @@ import pandas as pd
 import requests
 
 BASE = Path(__file__).resolve().parent
-DATA_DIR = BASE / "indirilen_veriler"
+DATA_DIR = Path(os.environ.get('AFET_ATLAS_DATA_DIR') or (BASE / 'indirilen_veriler'))
 POP_LOCAL = DATA_DIR / "ilce_nufus_2025.csv"
 SEGE_LOCAL = DATA_DIR / "ilce_sege_2022.csv"
 POP_URL = "https://raw.githubusercontent.com/topografya/veri/yayin/nufus/gostergeler.json"

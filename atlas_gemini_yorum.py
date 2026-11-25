@@ -9,11 +9,12 @@ import hashlib
 import json
 import math
 import os
+import re
 from typing import Any
 
 import pandas as pd
 
-DEFAULT_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_MODEL = "gemini-3.1-flash-lite"
 
 SYSTEM_INSTRUCTION = """Sen Afet Atlas'ın Türkiye bölgesel değerlendirme editörüsün.
 Girdi bir Python analiz motorunun ürettiği JSON veri özetidir. Türkçe, akıcı, kendine özgü, 110–180 kelimelik
@@ -107,16 +108,62 @@ def afet_baglam(afet: str, city: str, year: int, df: pd.DataFrame, col: str,
     }
 
 
+def _gecerli_anahtar(key: str) -> str:
+    """Örnek dosyadaki yer tutucuları gerçek API anahtarı sayma."""
+    key = (key or '').strip()
+    upper = key.upper()
+    if not key or upper.startswith(('YOUR_', 'AI_STUDIO_API_KEY_', 'BURAYA_', 'GOOGLE_AI_STUDIO_')):
+        return ''
+    return key
+
+
 def api_anahtari() -> str:
-    key = (os.environ.get('GOOGLE_API_KEY') or os.environ.get('GEMINI_API_KEY') or '').strip()
-    if key and not key.startswith('YOUR_'):
-        return key
+    for var in ('GOOGLE_API_KEY', 'GEMINI_API_KEY'):
+        key = _gecerli_anahtar(os.environ.get(var, ''))
+        if key:
+            return key
     try:
         import streamlit as st
-        key = str(st.secrets.get('GOOGLE_API_KEY') or st.secrets.get('GEMINI_API_KEY') or '').strip()
-        return '' if key.startswith('YOUR_') else key
+        for var in ('GOOGLE_API_KEY', 'GEMINI_API_KEY'):
+            key = _gecerli_anahtar(str(st.secrets.get(var) or ''))
+            if key:
+                return key
     except Exception:
-        return ''
+        pass
+    return ''
+
+
+def hata_mesaji(exc: Exception, api_key: str = '') -> tuple[str, str]:
+    """Son kullanıcıya anlaşılır hata, ayrıntıda anahtarları gizleyen teknik mesaj."""
+    raw = f'{type(exc).__name__}: {exc}'
+    if api_key:
+        raw = raw.replace(api_key, '[API ANAHTARI GİZLENDİ]')
+    raw = re.sub(r'AIza[0-9A-Za-z_-]{20,}', '[API ANAHTARI GİZLENDİ]', raw)
+    raw = re.sub(r'(?i)((?:x-goog-api-key|api_key|api-key)\s*[:=]\s*[\"\']?)[^\s\"\',;&]+',
+                 r'\1[GİZLENDİ]', raw)
+    raw = raw[:1800]
+    status = getattr(exc, 'code', None) or getattr(exc, 'status_code', None)
+    match = re.search(r'\b(400|401|403|404|429|500|502|503|504)\b', raw)
+    code = str(status) if status else (match.group(1) if match else '')
+    if isinstance(exc, (ImportError, ModuleNotFoundError)):
+        info = 'Gemini Python kütüphanesi eksik. Terminalde python -m pip install -r requirements.txt çalıştır.'
+    elif code == '400':
+        info = 'Google isteği kabul etmedi (400). Model adını ve API yapılandırmasını kontrol et.'
+    elif code == '401':
+        info = 'API anahtarı geçersiz veya yetkisiz (401). Google AI Studio anahtarını kontrol et.'
+    elif code == '403':
+        info = 'Google API erişimi reddetti (403). API anahtarının proje izinlerini ve erişimini kontrol et.'
+    elif code == '404':
+        info = 'Seçilen Gemini modeli anahtarın için kullanılamıyor (404). secrets.toml içindeki AFET_ATLAS_MODEL değerini kontrol et.'
+    elif code == '429':
+        info = 'Gemini kullanım kotası veya hız sınırına ulaşıldı (429). Google AI Studio kota bilgilerini kontrol et.'
+    elif code in {'500','502','503','504'}:
+        info = f'Google Gemini servisi şu anda yanıt veremedi ({code}). Farklı bir modelle tekrar deneyebilirsin.'
+    elif 'timeout' in raw.lower() or 'timed out' in raw.lower():
+        info = 'Gemini isteği zaman aşımına uğradı. Ağ bağlantısını kontrol edip yeniden deneyebilirsin.'
+    else:
+        info = 'Gemini isteği başarısız oldu. Teknik ayrıntıda hata türünü görebilirsin.'
+    return info, raw
 
 
 def _generate_text(payload_json: str, model: str, api_key: str) -> str:
@@ -148,13 +195,29 @@ def yorum_uret(baglam: dict, *, api_key: str, model: str = DEFAULT_MODEL) -> str
     return _generate_text(json.dumps(_native(baglam),ensure_ascii=False,sort_keys=True),model,api_key)
 
 
+def gemini_buton_metni(baglam: dict) -> str:
+    """Bölge adını yorum bağlamından seçer; model sonucu gerektirmez."""
+    city = str(baglam.get('il') or baglam.get('secilen_il') or '').strip()
+    if baglam.get('konu') == 'İlçe sıralaması':
+        leader = next(iter(baglam.get('ilk_uc_ilce') or []), {})
+        district = str(leader.get('ilce') or '').strip()
+        city = str(leader.get('il') or city).strip()
+        if district and city:
+            return f'✦ Gemini ile {city} / {district} hakkında daha fazla bilgi'
+        if district:
+            return f'✦ Gemini ile {district} hakkında daha fazla bilgi'
+    if city:
+        return f'✦ Gemini ile {city} hakkında daha fazla bilgi'
+    return '✦ Gemini ile bölge hakkında daha fazla bilgi'
+
+
 def gemini_yorum_butonu(baglam: dict, key: str) -> None:
     """Streamlit'te talep üzerine yorum; 6 saat saklanan, kapsam anahtarlı önbellek."""
     import streamlit as st
     payload_json=json.dumps(_native(baglam),ensure_ascii=False,sort_keys=True)
     digest=hashlib.sha256(payload_json.encode('utf-8')).hexdigest()
     memory_key='gemini_text_'+key
-    pressed=st.button('✦ Gemini ile özgün yorum oluştur',key='gemini_btn_'+key)
+    pressed=st.button(gemini_buton_metni(baglam),key='gemini_btn_'+key)
     if pressed:
         secret=api_anahtari()
         if not secret:
@@ -170,12 +233,15 @@ def gemini_yorum_butonu(baglam: dict, key: str) -> None:
                 try:
                     answer=_cached_yorum(payload_json, model, _api_key=secret)
                     st.session_state[memory_key]={'digest':digest,'answer':answer}
-                except Exception:
-                    st.session_state.pop(memory_key,None)
-                    st.info('Gemini bağlantısı şu anda yanıt vermedi. Python yorumu yukarıda kullanılabilir.')
+                except Exception as exc:
+                    st.session_state.pop(memory_key, None)
+                    info, diagnostic = hata_mesaji(exc, secret)
+                    st.error(info)
+                    with st.expander('Teknik hata ayrıntısı'):
+                        st.code(diagnostic, language='text')
     stored=st.session_state.get(memory_key)
     if stored and stored.get('digest')==digest:
-        st.markdown('**Gemini’nin bölgeye özel yorumu**')
+        st.markdown('**Gemini’nin bölge hakkındaki değerlendirmesi**')
         st.write(stored['answer'])
 
 

@@ -72,7 +72,7 @@ def _value_string(value: float | int | None) -> str:
     return f'{float(value):,.1f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 
-def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str) -> folium.Map:
+def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str, *, il_degerlerini_yaz: bool = False) -> folium.Map:
     """Her il için gerçek geometrinin tüm yüzeyini tıklanabilir yapar."""
     if not {'İl', deger}.issubset(tablo.columns):
         raise ValueError('Harita için İl ve gösterge sütunu gerekiyor.')
@@ -146,7 +146,7 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str) ->
         ),
         smooth_factor=1,
     ).add_to(m)
-    if is_safety or is_trade_average:
+    if is_safety or is_trade_average or il_degerlerini_yaz:
         # Yüzdeler ve ortalama puanlar il üzerinde görünür; seçim poligon üzerindedir.
         for feat in feats:
             name = feat['properties']['il']
@@ -155,7 +155,9 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str) ->
                 continue
             center = shape(feat['geometry']).representative_point()
             number = int(round(float(value)))
-            text = f'{number}%' if is_safety else str(number)
+            text = (f'{number}%' if is_safety else
+                    _value_string(value) if il_degerlerini_yaz and deger == 'Sektörel fırsat puanı'
+                    else str(number))
             folium.Marker(
                 location=(center.y, center.x),
                 icon=folium.DivIcon(

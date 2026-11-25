@@ -10,6 +10,7 @@ import json
 import math
 import os
 import re
+from atlas_gemini_dayaniklilik import guvenli_uret
 from typing import Any
 
 import pandas as pd
@@ -192,7 +193,8 @@ def _generate_text(payload_json: str, model: str, api_key: str) -> str:
 def yorum_uret(baglam: dict, *, api_key: str, model: str = DEFAULT_MODEL) -> str:
     if not api_key:
         raise ValueError('Google API anahtarı bulunamadı.')
-    return _generate_text(json.dumps(_native(baglam),ensure_ascii=False,sort_keys=True),model,api_key)
+    payload = json.dumps(_native(baglam),ensure_ascii=False,sort_keys=True)
+    return guvenli_uret(lambda candidate: _generate_text(payload, candidate, api_key), model)
 
 
 def gemini_buton_metni(baglam: dict) -> str:
@@ -250,7 +252,7 @@ try:
     import streamlit as _st
     @_st.cache_data(ttl=21600, max_entries=300, show_spinner=False)
     def _cached_yorum(payload_json: str, model: str, _api_key: str) -> str:
-        return _generate_text(payload_json, model, _api_key)
+        return guvenli_uret(lambda candidate: _generate_text(payload_json, candidate, _api_key), model)
 except ImportError:
     def _cached_yorum(payload_json: str, model: str, _api_key: str) -> str:
-        return _generate_text(payload_json, model, _api_key)
+        return guvenli_uret(lambda candidate: _generate_text(payload_json, candidate, _api_key), model)

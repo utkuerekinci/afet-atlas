@@ -45,13 +45,13 @@ def veri_yukle():
 
 
 def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
-                 label: str, key: str, secim: bool = True):
+                 label: str, key: str, secim: bool = True, *, il_degerlerini_yaz: bool = False):
     """Tam il yüzeyinden tıklanabilir, sürüklenemeyen, tek kadrajlı atlas."""
     from streamlit_folium import st_folium
     from atlas_sabit_harita import hazirla_harita, il_olayi
 
     chosen = st.session_state.get('secilen_il', 'Ankara')
-    harita = hazirla_harita(province, col, label, chosen)
+    harita = hazirla_harita(province, col, label, chosen, il_degerlerini_yaz=il_degerlerini_yaz)
     result = st_folium(
         harita, height=425, use_container_width=True,
         key='sabit_harita_'+key,
@@ -302,7 +302,8 @@ def yasam_ticaret_sayfasi(mode:str):
         sector='Yeme-içme'
     with ilkutusu:
         city=il_secimi(sorted(province.İl.tolist()),mode,label='Şehir ara / seç')
-    ortak_harita(geo,province,layer,layer,mode)
+    ortak_harita(geo,province,layer,layer,mode,
+                 il_degerlerini_yaz=(mode=='ticaret' and layer in ('Sektörel fırsat puanı', 'İlçe sayısı')))
     if mode=='ticaret' and layer=='Sektörel fırsat puanı':
         st.caption(f'Harita sektörü: **{sector}** · Her ilin ulusal ölçekte en yüksek puanlı üç ilçesinin ortalaması.')
     city=st.session_state.get('secilen_il',city)

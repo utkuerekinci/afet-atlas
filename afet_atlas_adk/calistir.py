@@ -6,26 +6,38 @@ Python veri araçlarından alıp almadığını gözlemlemeyi kolaylaştırır.
 from __future__ import annotations
 
 import asyncio
+import os
+
+from atlas_gemini_dayaniklilik import guvenli_uret_async
 
 
 def ajana_sor(soru: str, iller, depremler, eslesenler,
-              yil_bas: int, yil_son: int, min_buyukluk: float, mesafe_km: int) -> str:
+              yil_bas: int, yil_son: int, min_buyukluk: float, mesafe_km: int, ilce_df=None) -> str:
     """Eski çağrılar için geriye uyumlu, yalnızca yanıt metnini döndürür."""
     return ajana_sor_ayrintili(soru, iller, depremler, eslesenler,
-                              yil_bas, yil_son, min_buyukluk, mesafe_km)["cevap"]
+                              yil_bas, yil_son, min_buyukluk, mesafe_km, ilce_df)["cevap"]
 
 
 def ajana_sor_ayrintili(soru: str, iller, depremler, eslesenler,
-                        yil_bas: int, yil_son: int, min_buyukluk: float, mesafe_km: int) -> dict:
+                        yil_bas: int, yil_son: int, min_buyukluk: float, mesafe_km: int, ilce_df=None) -> dict:
     """Yanıtı, kullanılan ADK araçlarını ve araç çağrısı adedini döndürür."""
     if not soru.strip():
         raise ValueError("Sorun boş olamaz.")
     return asyncio.run(_calistir(soru, iller, depremler, eslesenler,
-                               yil_bas, yil_son, min_buyukluk, mesafe_km))
+                               yil_bas, yil_son, min_buyukluk, mesafe_km, ilce_df))
 
 
 async def _calistir(soru, iller, depremler, eslesenler,
-                   yil_bas, yil_son, min_buyukluk, mesafe_km) -> dict:
+                   yil_bas, yil_son, min_buyukluk, mesafe_km, ilce_df) -> dict:
+    async def run_one(model: str):
+        return await _calistir_tek_model(soru, iller, depremler, eslesenler,
+                                        yil_bas, yil_son, min_buyukluk, mesafe_km, ilce_df, model)
+
+    return await guvenli_uret_async(run_one, os.environ.get('AFET_ATLAS_MODEL', 'gemini-3.5-flash-lite'))
+
+
+async def _calistir_tek_model(soru, iller, depremler, eslesenler,
+                             yil_bas, yil_son, min_buyukluk, mesafe_km, ilce_df, model: str) -> dict:
     from google.adk.apps import App
     from google.adk.runners import Runner
     from google.adk.sessions import InMemorySessionService
@@ -34,7 +46,7 @@ async def _calistir(soru, iller, depremler, eslesenler,
     from .agent import ajan_olustur
 
     ajan = ajan_olustur(iller, depremler, eslesenler,
-                       yil_bas, yil_son, min_buyukluk, mesafe_km)
+                       yil_bas, yil_son, min_buyukluk, mesafe_km, ilce_df, model=model)
     uygulama = App(name="afet_atlas_streamlit", root_agent=ajan)
     oturum_servisi = InMemorySessionService()
     kullanici = "yerel_kullanici"

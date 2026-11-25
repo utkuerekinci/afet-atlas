@@ -346,8 +346,8 @@ button[data-testid="stSidebarCollapseButton"]::after {
 [data-testid="stSelectbox"] [data-baseweb="select"] > div,
 [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
 [data-testid="stSidebar"] [data-baseweb="select"] > div {
- background:#df4059!important;
- border:1px solid #fb7284!important;
+ background:#f04e66!important;
+ border:1px solid #ffafb8!important;
  border-radius:11px!important;
  color:#ffffff!important;
  box-shadow:0 3px 11px rgba(232,65,89,.17)!important;
@@ -356,7 +356,7 @@ button[data-testid="stSidebarCollapseButton"]::after {
 [data-testid="stSelectbox"] [data-baseweb="select"] > div:hover,
 [data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover,
 [data-testid="stSidebar"] [data-baseweb="select"] > div:hover {
- background:#f04e66!important;
+ background:#ff657a!important;
  border-color:#ffc2c8!important;
 }
 [data-testid="stSelectbox"] [data-baseweb="select"] *:not(svg):not(path),
@@ -377,7 +377,7 @@ button[data-testid="stSidebarCollapseButton"]::after {
 }
 [data-baseweb="popover"] [role="option"]:hover,
 [data-baseweb="popover"] [role="option"][aria-selected="true"] {
- background:#aa334e!important;
+ background:#bd304d!important;
 }
 @media(max-width:670px){
  [data-testid="stSelectbox"] [data-baseweb="select"] > div {min-height:40px!important;}
@@ -662,9 +662,9 @@ if module=='Genel Bakış':
         else:
             filter_column,city_column=st.columns([1.3,1],gap='small')
             with filter_column:
-                if topic == 'Doğal afetler':
+                if topic in ('Doğal afetler', 'Ticari hareketlilik'):
                     layer=labels[0]
-                    st.markdown('**Harita göstergesi:** Güvenlik skoru (%)')
+                    st.markdown('**Harita göstergesi:** '+layer)
                 else:
                     layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic,
                                        help='Haritada renklendirilecek veriyi seç.')
@@ -674,7 +674,8 @@ if module=='Genel Bakış':
             ortak_harita(geo,layer_data,layer_col,layer_text,'home_v40')
             # Harita tıklaması rerun üretir; dolayısıyla gösterilen şehir her zaman günceldir.
             city=st.session_state.get('secilen_il',city)
-            details=city_summary(districts,provinces,city,topic,layer)
+            details=city_summary(districts,provinces,city,topic,layer,
+                                 safety_snapshot=layer_data if topic=='Doğal afetler' else None)
             population_text=f'{details["nufus"]:,}'.replace(',','.')
             words=str(details['text']).split('. ')
             short='.'.join([]) if not words else '. '.join(words[:2]).rstrip('.')+'.'
@@ -801,7 +802,7 @@ elif module=='Yardım':
     st.write('Sol üstteki menü simgesine tıklayarak sayfaları açabilirsin. '
              'Analizler başlığını genişletip ilgilendiğin alanı seç.')
     steps=[
-        ('1 · Haritayı keşfet','Genel Bakış sayfasında Yaşam, Ticaret veya Afet seç. Yaşam ve Ticaret için göstergeleri değiştirebilir, Afet bölümünde illerin güvenlik skorlarını karşılaştırabilirsin. Bir ilin renkli alanına tıkla; harita sürüklenmez.'),
+        ('1 · Haritayı keşfet','Genel Bakış sayfasında Yaşam, Ticaret veya Afet seç. Yaşam göstergelerini değiştirebilir, Ticaret haritasında dört sektörün ortalama puanını ve Afet bölümünde illerin güvenlik skorlarını karşılaştırabilirsin. Bir ilin renkli alanına tıkla; harita sürüklenmez.'),
         ('2 · İl ayrıntılarına geç','Kısa il özetinin altındaki Ayrıntıya Git düğmesine bas. Aynı il ilgili analiz sayfasında korunur.'),
         ('3 · Afetleri incele','Menüden Analizler → Afet Analizi bölümünü seç. Açılan sayfada Afet türünü belirle. Deprem için yıl, büyüklük ve yakınlık filtrelerini haritanın üstünden ayarla. Seçtiğin ilin deprem kayıtları haritanın hemen altında görünür.'),
         ('4 · Yaşam koşullarını karşılaştır','Yaşam Kalitesi bölümünde şehir ve yaşam tercihini seç. Birincilik açıklaması tercihin yanında gösterilir. Aşağı kaydırıp Türkiye veya il içi sıralamalardaki İki ilçeyi karşılaştır alanında önce il, ardından ilçe seç.'),
@@ -857,4 +858,4 @@ else:
 - **“Neden Bu İlçe Birinci?”** sıralama, ağırlık ve katkılardan otomatik hesaplanır.
 """)
 
-st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.11</span></div>',unsafe_allow_html=True)
+st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.12</span></div>',unsafe_allow_html=True)

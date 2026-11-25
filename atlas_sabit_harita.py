@@ -84,6 +84,7 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str,
     if names != set(data.index) or len(data) != 81:
         raise ValueError('Harita ile 81 il verisi eşleşmeli.')
     is_safety = deger == 'Güvenlik skoru (%)'
+    is_trade_average = deger == 'Ortalama ticari puan'
     valid = values.dropna()
     low, high = (float(valid.min()), float(valid.max())) if not valid.empty else (0.0, 1.0)
     span = (high-low) or 1.0
@@ -147,8 +148,8 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str,
         ),
         smooth_factor=1,
     ).add_to(m)
-    if is_safety:
-        # Yüzdeler illerin içinde görünür; poligon tıklaması da çalışır.
+    if is_safety or is_trade_average:
+        # Yüzdeler ve ortalama puanlar il üzerinde görünür; seçim poligon üzerindedir.
         for feat in feats:
             name = feat['properties']['il']
             value = values.get(name)
@@ -156,10 +157,11 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str,
                 continue
             center = shape(feat['geometry']).representative_point()
             number = int(round(float(value)))
+            text = f'{number}%' if is_safety else str(number)
             folium.Marker(
                 location=(center.y, center.x),
                 icon=folium.DivIcon(
-                    html=f'<span class="atlas-score-chip">{number}%</span>',
+                    html=f'<span class="atlas-score-chip">{text}</span>',
                     icon_size=(30,16), icon_anchor=(15,8),
                     class_name='atlas-score-label',
                 ),

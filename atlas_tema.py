@@ -125,7 +125,7 @@ button[data-baseweb="tab"][aria-selected="true"] {color:#087a88!important;}
 /* Kırmızı seçim kutularını iki temada da koru. */
 [data-testid="stSelectbox"] [data-baseweb="select"] > div,
 [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
-[data-testid="stSidebar"] [data-baseweb="select"] > div {background:#df4059!important;color:#fff!important;border-color:#fb7284!important;}
+[data-testid="stSidebar"] [data-baseweb="select"] > div {background:#f04e66!important;color:#fff!important;border-color:#ffafb8!important;}
 [data-baseweb="popover"] [role="listbox"] {background:#fff!important;border:1px solid #e89eab!important;}
 [data-baseweb="popover"] [role="option"] {color:#1e3249!important;}
 [data-baseweb="popover"] [role="option"]:hover,

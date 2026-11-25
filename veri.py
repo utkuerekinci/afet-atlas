@@ -32,7 +32,17 @@ def il_sinirlarini_getir() -> dict:
     VERI_KLASORU.mkdir(exist_ok=True)
     hedef = VERI_KLASORU / 'turkiye_81_il.geojson'
     if hedef.exists():
-        return json.loads(hedef.read_text(encoding='utf-8'))
+        result = json.loads(hedef.read_text(encoding='utf-8'))
+        if len(result.get('features', [])) == 81:
+            return result
+    # Yönetici verileri için kullanılan ayrı depo il sınırı GeoJSON'unu taşımaz.
+    # Projenin kendisindeki doğrulanmış sınırları çevrimdışı da güvenle kullan.
+    bundled = Path(__file__).resolve().parent / 'indirilen_veriler' / 'turkiye_81_il.geojson'
+    if bundled.is_file():
+        result = json.loads(bundled.read_text(encoding='utf-8'))
+        features = result.get('features', [])
+        if len(features) == 81 and len({f.get('properties', {}).get('shapeName') for f in features}) == 81:
+            return result
 
     metadata = _indir(SINIR_API).json()
     # Türkiye ADM1 veri katmanının gerçek 81 il içerdiğini doğrula.

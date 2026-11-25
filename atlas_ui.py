@@ -272,10 +272,6 @@ def yasam_ticaret_sayfasi(mode:str):
     df=df.copy()
     df['il']=df['il'].map(lambda value: canonical[normalize_name(value)])
     province=illere_ozet(df)
-    if mode=='ticaret':
-        initial_sector=st.session_state.get('v34_sektor','Yeme-içme')
-        if initial_sector not in SEKTOR_AGIRLIKLARI:initial_sector='Yeme-içme'
-        province=province.merge(ticari_firsat_il_katmani(df,initial_sector),on='İl',validate='one_to_one')
     city=st.session_state.get('secilen_il','Ankara')
     if city not in province.İl.tolist():city='Ankara'
     name='Yaşam Kalitesi' if mode=='yasam' else 'Ticari Potansiyel'
@@ -293,43 +289,51 @@ def yasam_ticaret_sayfasi(mode:str):
             options+=['OSM yeme-içme kaydı','OSM perakende kaydı','OSM hizmet kaydı',
                       'OSM lojistik kaydı','OSM ulaşım kaydı']
 
-    filtre, ilkutusu=st.columns([1.25,1],gap='small')
+    # Ticaret ekranında kullanıcı ilk bakışta üç filtreyi birlikte görür.
+    if mode=='ticaret':
+        filtre, sektor_kutusu, ilkutusu=st.columns([1.13,1.14,1.0],gap='small')
+    else:
+        filtre, ilkutusu=st.columns([1.25,1],gap='small')
     with filtre:
         layer=st.selectbox('Harita göstergesi',options,key=mode+'_layer')
+    if mode=='ticaret':
+        with sektor_kutusu:
+            sector=st.selectbox('Analiz edilecek sektör',list(SEKTOR_AGIRLIKLARI),key='v34_sektor')
+        province=province.merge(ticari_firsat_il_katmani(df,sector),on='İl',validate='one_to_one')
+    else:
+        sector='Yeme-içme'
     with ilkutusu:
         city=il_secimi(sorted(province.İl.tolist()),mode,label='Şehir ara / seç')
     ortak_harita(geo,province,layer,layer,mode)
     if mode=='ticaret' and layer=='Sektörel fırsat puanı':
-        st.caption(f'Harita sektörü: **{initial_sector}** · Her ilin ulusal ölçekte en yüksek puanlı üç ilçesinin ortalaması.')
+        st.caption(f'Harita sektörü: **{sector}** · Her ilin ulusal ölçekte en yüksek puanlı üç ilçesinin ortalaması.')
     city=st.session_state.get('secilen_il',city)
     row=province.set_index('İl').loc[city]
     local=df[df.il==city]
     biggest=local.loc[local.nufus.idxmax()]
-    st.markdown('<div class="quick-facts">'
-                f'<span>{city}</span>'
-                f'<span>{int(row["Nüfus (2025)"]):,} nüfus</span>'
-                f'<span>{int(row["İlçe sayısı"])} ilçe</span>'
-                f'<span>En kalabalık ilçe: {biggest.ilce}</span>'
-                + (f'<span>{int(local.osm_ulasim.sum())} ulaşım kaydı</span>'
-                   if mode=='ticaret' and status.get('osm_aktif') else '')
-                + '</div>',unsafe_allow_html=True)
-    if mode=='ticaret' and not status.get('osm_aktif'):
-        st.info('İşletme katmanı hazırlanıyor; nüfus ve gelişmişlik analizleri kullanılabilir.')
-
+    facts=('<div class="quick-facts">'
+           f'<span>{city}</span>'
+           f'<span>{int(row["Nüfus (2025)"]):,} nüfus</span>'
+           f'<span>{int(row["İlçe sayısı"])} ilçe</span>'
+           f'<span>En kalabalık ilçe: {biggest.ilce}</span>'
+           + (f'<span>{int(local.osm_ulasim.sum())} ulaşım kaydı</span>'
+              if mode=='ticaret' and status.get('osm_aktif') else '')
+           + '</div>')
+    if mode=='yasam':
+        st.markdown(facts,unsafe_allow_html=True)
     controls,preview=st.columns([1,1.35],gap='large')
     with controls:
         if mode=='ticaret':
-            sector=st.selectbox('Analiz edilecek sektör',list(SEKTOR_AGIRLIKLARI),key='v34_sektor')
+            # Daha önce bu sütunda bulunan sektör filtresi yukarıya taşındı.
+            # Var olan il özetini buraya alarak boş alan bırakmıyoruz.
+            st.markdown(facts,unsafe_allow_html=True)
             pref='Dengeli'
         else:
             pref=st.radio('Yaşam tercihi',['Dengeli','Daha sakin','Daha hareketli'],
                           horizontal=False,key='v34_preference')
-            sector='Yeme-içme'
-    # Ayrı bir özellik değil: aşağıdaki il içi sıralamanın birincisini boş alanda göster.
     local_rank,local_meta=sirala_ilceler(df,mode,'İl içi',city,sector,pref)
     with preview:
         if not local_rank.empty:
-            # Yaşam ve ticaret aynı düzeni kullanır; gerekçe yalnızca burada yer alır.
             with st.container(border=True):
                 aciklama_alani(local_rank,local_meta)
     siralama_alani(df,mode,city,sector,pref)

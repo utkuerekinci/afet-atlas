@@ -34,12 +34,7 @@ LAYERS = {
         'Sosyoekonomik gelişmişlik': 'Ortalama ilçe SEGE sırası',
     },
     'Ticari hareketlilik': {
-        **{label: label for label in OPPORTUNITY_SECTORS},
-        'Yeme-içme': 'OSM yeme-içme kaydı',
-        'Perakende': 'OSM perakende kaydı',
-        'Hizmetler': 'OSM hizmet kaydı',
-        'Lojistik': 'OSM lojistik kaydı',
-        'Ulaşım bağlantıları': 'OSM ulaşım kaydı',
+        'Ortalama ticari puan': 'Ortalama ticari puan',
     },
     'Doğal afetler': {
         'Güvenlik skoru (%)': 'Güvenlik skoru (%)',
@@ -48,7 +43,7 @@ LAYERS = {
 
 TOPIC_DESCRIPTIONS = {
     'Yaşam ve nüfus': 'Nüfusun dağılımını, ilçelerin büyüklüğünü ve gelişmişlik profilini birlikte keşfet.',
-    'Ticari hareketlilik': 'Sektörel fırsat puanlarını, mevcut işletme kayıtlarını ve ulaşım göstergelerini karşılaştır.',
+    'Ticari hareketlilik': 'Dört sektörün birlikte değerlendirilmesiyle oluşan il bazlı ortalama ticari puanları keşfet.',
     'Doğal afetler': 'Deprem, yangın, sel, heyelan, çığ, fırtına ve kuraklık göstergelerini birleştiren il güvenlik skorlarını keşfet.',
 }
 
@@ -69,6 +64,9 @@ def prepare_provinces(districts: pd.DataFrame, boundaries: dict) -> tuple[pd.Dat
         best_three = ranked.groupby('il', sort=False).head(3)
         score = best_three.groupby('il')['Fırsat puanı'].mean()
         provinces[label] = provinces['İl'].map(score).round(1)
+    # Ana sayfada sektör filtresi yoktur: dört model sonucunun eşit ağırlıklı ortalaması.
+    # Ticari Potansiyel sayfasındaki sektör seçimi değişmez.
+    provinces['Ortalama ticari puan'] = provinces[list(OPPORTUNITY_SECTORS)].mean(axis=1).round(1)
     return districts, provinces
 
 
@@ -188,12 +186,28 @@ def afet_guvenlik_bilesenleri() -> pd.DataFrame:
 
 
 def provincial_safety_scores() -> pd.DataFrame:
-    """Yedi afet grubunun ağırlıklı tarihsel faaliyet endeksini 0..100'e çevir."""
-    risk = afet_guvenlik_bilesenleri().set_index('İl')
-    weights = AFET_GUVENLIK_AGIRLIKLARI
-    weighted = sum(risk[key] * weight for key, weight in weights.items())
-    score = ((1-weighted)*100).clip(lower=0,upper=100).round().astype(int)
-    return score.rename('Güvenlik skoru (%)').rename_axis('İl').reset_index()
+    """Yedi afetten güncel skorları hesapla; geçici veri hatasında doğrulanmış skora dön."""
+    try:
+        risk = afet_guvenlik_bilesenleri().set_index('İl')
+        weights = AFET_GUVENLIK_AGIRLIKLARI
+        weighted = sum(risk[key] * weight for key, weight in weights.items())
+        score = ((1-weighted)*100).clip(lower=0,upper=100).round().astype(int)
+        result = score.rename('Güvenlik skoru (%)').rename_axis('İl').reset_index()
+        if len(result)!=81 or result['Güvenlik skoru (%)'].isna().any():
+            raise ValueError('81 il için güvenlik skoru oluşturulamadı')
+        return result
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception('Canlı afet göstergesi hesaplanamadı; doğrulanmış paket skorları kullanılıyor')
+        from pathlib import Path
+        bundled = Path(__file__).resolve().parent / 'afet_guvenlik_paket_81_il.csv'
+        fallback = pd.read_csv(bundled, encoding='utf-8-sig')
+        if (len(fallback)!=81 or fallback['İl'].nunique()!=81 or
+            fallback['Güvenlik skoru (%)'].isna().any() or
+            not fallback['Güvenlik skoru (%)'].between(0,100).all() or
+            set(fallback['İl'])!=set(region_map())):
+            raise ValueError('Yedek afet skorlarının doğrulaması başarısız')
+        return fallback[['İl','Güvenlik skoru (%)']]
 
 
 def layer_frame(provinces: pd.DataFrame, topic: str, label: str) -> tuple[pd.DataFrame, str, str]:
@@ -208,7 +222,8 @@ def layer_frame(provinces: pd.DataFrame, topic: str, label: str) -> tuple[pd.Dat
 
 
 def city_summary(districts: pd.DataFrame, provinces: pd.DataFrame,
-                 city: str, topic: str, label: str) -> dict:
+                 city: str, topic: str, label: str,
+                 safety_snapshot: pd.DataFrame | None = None) -> dict:
     """Görünen il için nokta atışı, gözleme dayalı kısa yorum üretir."""
     row = provinces.loc[provinces['İl'].eq(city)]
     local = districts.loc[districts.il.eq(city)]
@@ -230,6 +245,16 @@ def city_summary(districts: pd.DataFrame, provinces: pd.DataFrame,
         })
     elif topic=='Ticari hareketlilik':
         col=LAYERS[topic][label]
+        if label == 'Ortalama ticari puan':
+            score = float(p[col])
+            result.update({
+                'title': 'Ticari hareketlilik özeti',
+                'text': (f'{city} için dört ticaret sektörünün il bazındaki '
+                         f'ortalama model puanı {score:.1f}/100.'),
+                'key_label': 'Ortalama ticari puan',
+                'key_value': f'{score:.1f} / 100',
+            })
+            return result
         if label in OPPORTUNITY_SECTORS:
             sector=OPPORTUNITY_SECTORS[label]
             ranked, meta=sirala_ilceler(districts, 'ticaret', 'Türkiye geneli', '', sector)
@@ -271,7 +296,8 @@ def city_summary(districts: pd.DataFrame, provinces: pd.DataFrame,
             'secondary_value':f'{leader.ilce} · {best:,}'.replace(',','.'),
         })
     else:
-        record = provincial_safety_scores().set_index('İl').loc[city]
+        record = (safety_snapshot if safety_snapshot is not None else
+                  provincial_safety_scores()).set_index('İl').loc[city]
         score = int(record['Güvenlik skoru (%)'])
         result.update({
             'title': 'Afet güvenlik profili',

@@ -42,6 +42,7 @@ from atlas_analiz import illere_ozet
 from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
 from genel_bakis import (OVERVIEW_TOPICS, TOPIC_DESCRIPTIONS, TOPIC_DESTINATIONS,
                          prepare_provinces, available_layers, layer_frame, city_summary)
+from atlas_tema import gunduz_tema_css
 
 
 # Yalnızca görsel tasarım: hesaplamalar hesaplama.py dosyasında tutulur.
@@ -464,6 +465,9 @@ with st.sidebar:
     st.markdown('<div class="overline"><span class="dot"></span> BBY261 · İLERİ PROGRAMLAMA</div>'
                 '<div class="sidebar-head">AFET ATLAS</div>'
                 '<div class="sidebar-small">☰ Menü · Bölümler</div>',unsafe_allow_html=True)
+    # Varsayılan eski görünüm: gece; geçiş yalnızca bu ziyaretçi oturumunu etkiler.
+    st.toggle('☀️ Gündüz modu',key='atlas_gunduz_modu',
+              help='Kapalıyken mevcut gece teması kullanılır. Açınca açık renkli gündüz görünümü uygulanır.')
     if st.button('⌂  Genel Bakış',key='nav_home',type='primary' if module=='Genel Bakış' else 'secondary',use_container_width=True):
         git_modul('Genel Bakış')
     with st.expander('▾  Analizler',expanded=module in ('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
@@ -484,6 +488,11 @@ with st.sidebar:
         git_modul('Yönetici Girişi')
     st.caption('Seçili il: '+st.session_state.get('secilen_il','Ankara'))
     # Afet türü ve deprem filtreleri v4.5'teki gibi haritanın yakınında kalır.
+
+# Gündüz CSS'i orijinal koyu tasarımın ardından yüklenir; gece modunda
+# mevcut stiller ve tüm analizler aynen korunur.
+if st.session_state.get('atlas_gunduz_modu', False):
+    st.markdown(gunduz_tema_css(),unsafe_allow_html=True)
 
 
 def deprem_kapsami() -> tuple[int,int,float,int]:
@@ -648,16 +657,17 @@ if module=='Genel Bakış':
             geo=il_sinirlari()
             districts,provinces=prepare_provinces(raw,geo)
         labels=available_layers(provinces,topic)
-        if topic == 'Ticari hareketlilik' and not overview_status.get('osm_aktif', False):
-            st.info('OSM kayıtları şu anda kullanılamıyor. Haritada mevcut nüfus ve SEGE göstergelerine '
-                    'dayanan sektörel ön değerlendirmeleri görebilirsin. OSM dosyalarını Yönetici Paneli’nden kontrol edebilirsin.')
         if not labels:
-            st.warning('Seçilen keşif alanında doğrulanmış harita verisi bulunamadı. Veri kaynağını Yönetici Paneli’nden kontrol et.')
+            st.caption('Bu keşif alanına ait harita verisi bulunamadı.')
         else:
             filter_column,city_column=st.columns([1.3,1],gap='small')
             with filter_column:
-                layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic,
-                                   help='Haritada renklendirilecek veriyi seç.')
+                if topic == 'Doğal afetler':
+                    layer=labels[0]
+                    st.markdown('**Harita göstergesi:** Güvenlik skoru (%)')
+                else:
+                    layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic,
+                                       help='Haritada renklendirilecek veriyi seç.')
             with city_column:
                 city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir ara / seç')
             layer_data,layer_col,layer_text=layer_frame(provinces,topic,layer)
@@ -679,9 +689,10 @@ if module=='Genel Bakış':
                 git_modul(TOPIC_DESTINATIONS[topic])
             gemini_yorum_butonu(il_baglam(districts,provinces,city,topic,layer,details),
                                 key='genel_bakis_'+topic.replace(' ','_'))
-    except Exception as exc:
-        st.error('Genel bakış haritası şu anda görüntülenemedi.')
-        with st.expander('Teknik ayrıntılar'): st.code(str(exc))
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception('Genel Bakış haritası oluşturulamadı')
+        st.caption('Harita verileri yüklenemedi. Sayfayı yeniden açmayı dene.')
     st.markdown('### Analiz alanları')
     a,b,c=st.columns(3)
     for col,title,desc,target in [(a,'Afet Analizi','7 afet türü, il haritaları ve karşılaştırmalar','Afet Analizi'),
@@ -790,7 +801,7 @@ elif module=='Yardım':
     st.write('Sol üstteki menü simgesine tıklayarak sayfaları açabilirsin. '
              'Analizler başlığını genişletip ilgilendiğin alanı seç.')
     steps=[
-        ('1 · Haritayı keşfet','Genel Bakış sayfasında Yaşam, Ticaret veya Afet seç. Harita göstergesini değiştir. Bir ilin renkli alanına tıkla. Harita sürüklenmez; sadece ili seçer.'),
+        ('1 · Haritayı keşfet','Genel Bakış sayfasında Yaşam, Ticaret veya Afet seç. Yaşam ve Ticaret için göstergeleri değiştirebilir, Afet bölümünde illerin güvenlik skorlarını karşılaştırabilirsin. Bir ilin renkli alanına tıkla; harita sürüklenmez.'),
         ('2 · İl ayrıntılarına geç','Kısa il özetinin altındaki Ayrıntıya Git düğmesine bas. Aynı il ilgili analiz sayfasında korunur.'),
         ('3 · Afetleri incele','Menüden Analizler → Afet Analizi bölümünü seç. Açılan sayfada Afet türünü belirle. Deprem için yıl, büyüklük ve yakınlık filtrelerini haritanın üstünden ayarla. Seçtiğin ilin deprem kayıtları haritanın hemen altında görünür.'),
         ('4 · Yaşam koşullarını karşılaştır','Yaşam Kalitesi bölümünde şehir ve yaşam tercihini seç. Birincilik açıklaması tercihin yanında gösterilir. Aşağı kaydırıp Türkiye veya il içi sıralamalardaki İki ilçeyi karşılaştır alanında önce il, ardından ilçe seç.'),
@@ -808,6 +819,10 @@ elif module=='Yardım':
         st.write('Yaşam Kalitesi ve Ticari Potansiyel sayfalarında aşağı kaydır; Türkiye geneli ve Seçilen ildeki enler sekmelerini incele. İki ilçeyi karşılaştır bölümünde önce il, sonra ilçe seç.')
     with st.expander('Gemini yorumu nasıl çalışır?'):
         st.write('Yalnızca Gemini ile daha fazla bilgi düğmesine basınca çalışır. İstersen mevcut Python açıklamalarını da okuyabilirsin.')
+    with st.expander('Yönetici paneli herkese açık mı?'):
+        st.write('Yönetici giriş sayfasına herkes ulaşabilir, ancak veri ekleme, güncelleme, yayından kaldırma ve geri alma işlemleri yalnızca yetkili yönetici hesabının kullanıcı adı ve şifresiyle giriş yapıldığında kullanılabilir.')
+    with st.expander('Gece ve gündüz görünümü nasıl değiştirilir?'):
+        st.write('Sol menüdeki ☀️ Gündüz modu seçeneğini açarak açık temaya geçebilirsin. Kapatırsan Afet Atlas’ın varsayılan gece görünümüne dönersin. Seçimin yalnızca açık oturum için geçerlidir.')
     st.markdown('#### Proje ve kaynak kod')
     st.write('Afet Atlas\'ın geliştirme dosyalarını, proje açıklamalarını ve sürüm geçmişini GitHub üzerinden inceleyebilirsin.')
     repo_link = github_kod_deposu_baglantisi()
@@ -838,7 +853,8 @@ else:
 - Ticaret: Sektöre göre nüfus, yaklaşık nüfus yoğunluğu ve varsa SEGE ağırlıklandırılır. Türkiye ve il bazında ayrı normalize edilir. 973/973 OSM kaydı yüklenirse sektörel işletme kümelenmesi, nüfusa göre rekabet baskısı ve lojistik dışı sektörlerde toplu taşıma kayıtları eklenir. 973 ilçede geçerli ve yeterli örneklemli ticari kira varsa ancak o zaman ortak puana katılır.
 - Model göstergeleri nüfus, SEGE-2022, sektörel OSM ve erişilebilirlik kayıtlarından oluşturulur.
 - Yaşam: Tercih edilen yerleşim ritmi %60, İlçe SEGE gelişmişlik profili %30 ve OSM ulaşım göstergesi %10 ağırlıkla birleştirilir; erişilebilir bileşenler üzerinden hesaplama yapılır.
+- **Afet güvenlik skoru:** 81 il için deprem %30, orman yangını %20, sel %12, heyelan %10, çığ %6, fırtına %10 ve kuraklık %12 ağırlıklarıyla oluşturulur. USGS 2025 deprem kayıtları, 2024–2025 yangın kayıtları ve MGM 2024 afet/yağış raporları kullanılır. Raporlarda adı geçmeyen illerde olay sayısı sıfır varsayılmaz.
 - **“Neden Bu İlçe Birinci?”** sıralama, ağırlık ve katkılardan otomatik hesaplanır.
 """)
 
-st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.8</span></div>',unsafe_allow_html=True)
+st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.11</span></div>',unsafe_allow_html=True)

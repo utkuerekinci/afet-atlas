@@ -5,7 +5,7 @@ import streamlit as st
 from atlas_afet_veri import get, AFETLER
 from atlas_ui import il_sinirlari, ortak_harita, il_secimi
 from atlas_il_yorumlari import yangin_il_yorumu, yangin_lider_yorumu
-from atlas_afet_veri import fire
+from atlas_afet_veri import safe_fire
 from atlas_gemini_yorum import afet_baglam, gemini_yorum_butonu
 
 
@@ -17,7 +17,13 @@ def diger_afet_sayfasi(afet:str)->None:
     metric=None
     if afet=='Orman yangını':
         with cc[1]:metric=st.selectbox('Harita göstergesi',['Yangın sayısı','Yanan alan (ha)'],key='v36_fire_metric')
-    record=get(afet,year,metric)
+    try:
+        record=get(afet,year,metric)
+    except (OSError, ValueError, KeyError, TypeError):
+        import logging
+        logging.getLogger(__name__).exception('Afet veri dosyası okunamadı: %s (%s)', afet, year)
+        st.caption('Bu afet türünün kayıtları yüklenemedi.')
+        return
     df=record['tablo']
     col=record['harita_kolonu']
     known=int(df[col].notna().sum())
@@ -47,7 +53,7 @@ def diger_afet_sayfasi(afet:str)->None:
                 st.metric('Yanan orman alanı',f'{row["Yanan alan (ha)"]:,.1f} ha'.replace(',','X').replace('.',',').replace('X','.'))
             else:st.metric('Yanan orman alanı','—')
             st.markdown('**İlin yangın profili**')
-            existing=yangin_il_yorumu(city,year,col,df,fire(2024) if year==2025 else None)
+            existing=yangin_il_yorumu(city,year,col,df,safe_fire(2024) if year==2025 else None)
             st.write(existing)
         elif record['tip']=='rapor_kaniti':
             if pd.notna(row['Rapor vurgusu']):
@@ -68,7 +74,7 @@ def diger_afet_sayfasi(afet:str)->None:
         st.dataframe(rank[['İl','Yangın sayısı','Yanan alan (ha)']].head(10),hide_index=True,use_container_width=True)
         if len(rank)>1:
             top=rank.iloc[0]
-            old=fire(2024) if year==2025 else None
+            old=safe_fire(2024) if year==2025 else None
             st.write(f'**{top["İl"]} neden öne çıkıyor?** '+yangin_lider_yorumu(rank,year,col,old))
     elif record['tip']=='rapor_kaniti':
         subset=df[df['Rapor vurgusu'].notna()].sort_values(['Rapor vurgusu','İl'],ascending=[False,True])

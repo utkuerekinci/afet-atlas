@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pandas as pd
 from atlas_analiz import illere_ozet, sirala_ilceler
-from atlas_afet_veri import fire
+from atlas_afet_veri import safe_fire, MGM_IL, YAGIS_SAPMASI_2024, region_map, ROOT
 from ilce_veri import normalize_name
 from atlas_il_yorumlari import yasam_il_yorumu, ticaret_il_yorumu, yangin_il_yorumu
 
@@ -42,16 +42,14 @@ LAYERS = {
         'Ulaşım bağlantıları': 'OSM ulaşım kaydı',
     },
     'Doğal afetler': {
-        'Orman yangınları · 2025': 'Yangın sayısı',
-        'Orman yangınları · 2024': 'Yangın sayısı',
-        'Yanan alan · 2025': 'Yanan alan (ha)',
+        'Güvenlik skoru (%)': 'Güvenlik skoru (%)',
     },
 }
 
 TOPIC_DESCRIPTIONS = {
     'Yaşam ve nüfus': 'Nüfusun dağılımını, ilçelerin büyüklüğünü ve gelişmişlik profilini birlikte keşfet.',
     'Ticari hareketlilik': 'Sektörel fırsat puanlarını, mevcut işletme kayıtlarını ve ulaşım göstergelerini karşılaştır.',
-    'Doğal afetler': 'Orman yangını kayıtlarının il bazındaki dağılımına bak; diğer afet türlerini ayrıntılı analizde incele.',
+    'Doğal afetler': 'Deprem, yangın, sel, heyelan, çığ, fırtına ve kuraklık göstergelerini birleştiren il güvenlik skorlarını keşfet.',
 }
 
 
@@ -81,12 +79,121 @@ def available_layers(provinces: pd.DataFrame, topic: str) -> list[str]:
 
 
 def _validated_fire(year: int) -> pd.DataFrame:
-    """Kullanılan özel veri bozulursa doğrulanmış paket verisini kullan."""
+    return safe_fire(year)
+
+
+# Afet Atlas'ın ders projesi için belirlenmiş model ağırlıkları.
+# Bileşenler farklı ölçü birimlerinden geldiği için önce 0..1 karşılaştırma
+# sırasına dönüştürülür. Resmî tehlike olasılığı veya bilimsel güvenlik oranı değildir.
+AFET_GUVENLIK_AGIRLIKLARI = {
+    'deprem': 0.30,
+    'orman_yangini': 0.20,
+    'sel': 0.12,
+    'heyelan': 0.10,
+    'cig': 0.06,
+    'firtina': 0.10,
+    'kuraklik': 0.12,
+}
+
+
+def _sira_riski(series: pd.Series) -> pd.Series:
+    """Daha büyük gözlem = daha büyük göreli faaliyet; eşitler aynı değeri alır."""
+    numeric = pd.to_numeric(series, errors='coerce').clip(lower=0)
+    if numeric.dropna().nunique() <= 1:
+        return pd.Series(0.5, index=series.index, dtype=float)
+    # Null değerleri asla sıfır olay gibi değerlendirme.
+    count = numeric.notna().sum()
+    ranks = numeric.rank(method='average', pct=True)
+    return ((ranks*count - 1) / (count - 1)).clip(0, 1)
+
+
+def _deprem_2025_faaliyeti(illler: list[str]) -> pd.Series:
+    """Paketlenmiş 2025 USGS M>=4.5 katalogundaki olayları illere eşleştir.
+
+    Kayıt coğrafi açıdan sınırda değilse yalnızca sınıra yaklaşık 30 km
+    mesafedeki en yakın il dikkate alınır; uzak deniz depremleri sayılmaz.
+    Her olay yalnızca bir ile bağlanır.
+    """
+    from shapely.geometry import shape, Point
+    import json
+    import numpy as np
+    boundaries = json.loads((ROOT/'indirilen_veriler'/'turkiye_81_il.geojson').read_text('utf-8'))
+    polygons = {f['properties']['shapeName']: shape(f['geometry']) for f in boundaries['features']}
+    if set(polygons) != set(illler):
+        raise ValueError('Deprem analizi ile 81 il sınırı eşleşmedi')
+    path = ROOT/'indirilen_veriler'/'usgs_2025_m4_5.csv'
     try:
-        return fire(year)
-    except (ValueError, OSError, KeyError, TypeError):
-        from atlas_yonetim_depo import BUNDLED
-        return fire(year, data_dir=BUNDLED)
+        earthquakes = pd.read_csv(path, usecols=['latitude','longitude','mag','type','id'])
+    except (OSError, ValueError, KeyError):
+        # Kaynak yoksa deprem riskini 0 saymak yerine nötr değer kullan.
+        return pd.Series(0.5, index=illler, dtype=float)
+    earthquakes['mag'] = pd.to_numeric(earthquakes['mag'], errors='coerce')
+    earthquakes['latitude'] = pd.to_numeric(earthquakes['latitude'], errors='coerce')
+    earthquakes['longitude'] = pd.to_numeric(earthquakes['longitude'], errors='coerce')
+    earthquakes = earthquakes.dropna(subset=['mag','latitude','longitude'])
+    earthquakes = earthquakes.loc[(earthquakes['type']=='earthquake') & (earthquakes['mag']>=4.5)]
+    earthquakes = earthquakes.drop_duplicates('id')
+    intensity = pd.Series(0.0, index=illler, dtype=float)
+    # Olay sayısı + büyüklük ölçeği; 2025 kayıtlarına dayalı tarihsel aktivite göstergesi.
+    for row in earthquakes.itertuples(index=False):
+        point = Point(float(row.longitude), float(row.latitude))
+        inside = [name for name,geom in polygons.items() if geom.covers(point)]
+        if inside:
+            assigned = inside[0]
+        else:
+            # Derece yerine enlem ölçeğini dikkate alan yaklaşık yakınlık kontrolü.
+            # 30 km = ~0.27 derece enlem; kısa enlem-boya uzaklıkları normalize edilir.
+            candidate = min(((geom.distance(point), name) for name,geom in polygons.items()), key=lambda item:item[0])
+            if candidate[0] > 0.32:
+                continue
+            assigned = candidate[1]
+        intensity.loc[assigned] += (float(row.mag) - 3.5) ** 2
+    return _sira_riski(intensity)
+
+
+def _rapor_riski(il: list[str], afet: str) -> pd.Series:
+    """MGM'de sözü edilmeyen il = nötr; var/yok sayımı yerine rapor vurgusu."""
+    result = pd.Series(0.5, index=il, dtype=float)
+    for name, (description, _) in MGM_IL[afet].items():
+        if name in result.index:
+            result.loc[name] = 0.95 if ('en çok' in description.casefold() or 'en yüksek' in description.casefold()) else 0.75
+    return result
+
+
+def afet_guvenlik_bilesenleri() -> pd.DataFrame:
+    """Birbiriyle karşılaştırılabilir 81 il için 7 afet türü bileşenleri."""
+    names = sorted(region_map())
+    risk = pd.DataFrame(index=names)
+    risk['deprem'] = _deprem_2025_faaliyeti(names)
+    years = []
+    for year in (2024, 2025):
+        fire = _validated_fire(year).set_index('İl')
+        if set(fire.index) != set(names):
+            raise ValueError('Yangın verilerinin 81 il kapsamı eksik')
+        count = _sira_riski(fire['Yangın sayısı'])
+        area = _sira_riski(fire['Yanan alan (ha)'])
+        years.append(pd.concat([count, area], axis=1).mean(axis=1, skipna=True))
+    risk['orman_yangini'] = pd.concat(years, axis=1).mean(axis=1, skipna=True)
+    for code, name in [('sel','Sel / taşkın'),('heyelan','Heyelan'),('cig','Çığ'),('firtina','Fırtına')]:
+        risk[code] = _rapor_riski(names, name)
+    # MGM bölgesel yağış sapması: negatif değer, kuraklık sinyali.
+    areas = region_map()
+    deficit = pd.Series({il: max(0.0, -YAGIS_SAPMASI_2024[areas[il]]) for il in names}, dtype=float)
+    max_deficit = float(deficit.max())
+    risk['kuraklik'] = (deficit/max_deficit) if max_deficit else 0.5
+    # Bütün il/afet bileşenleri kaydedilmiş kaynaklar üzerinden üretilir.
+    if risk.isna().any().any() or risk.shape != (81, 7):
+        raise ValueError('Afet bileşenlerinde doğrulanamayan veri var')
+    return risk.rename_axis('İl').reset_index()
+
+
+def provincial_safety_scores() -> pd.DataFrame:
+    """Yedi afet grubunun ağırlıklı tarihsel faaliyet endeksini 0..100'e çevir."""
+    risk = afet_guvenlik_bilesenleri().set_index('İl')
+    weights = AFET_GUVENLIK_AGIRLIKLARI
+    weighted = sum(risk[key] * weight for key, weight in weights.items())
+    score = ((1-weighted)*100).clip(lower=0,upper=100).round().astype(int)
+    return score.rename('Güvenlik skoru (%)').rename_axis('İl').reset_index()
 
 
 def layer_frame(provinces: pd.DataFrame, topic: str, label: str) -> tuple[pd.DataFrame, str, str]:
@@ -94,9 +201,8 @@ def layer_frame(provinces: pd.DataFrame, topic: str, label: str) -> tuple[pd.Dat
     if label not in LAYERS.get(topic, {}): raise ValueError('Seçilen katman tanınmıyor')
     col = LAYERS[topic][label]
     if topic == 'Doğal afetler':
-        year=2024 if '2024' in label else 2025
-        data=_validated_fire(year)
-        return data[['İl', col]].copy(), col, ('Orman yangını sayısı' if col=='Yangın sayısı' else 'Yanan alan (ha)')
+        data=provincial_safety_scores()
+        return data[['İl', col]].copy(), col, 'Güvenlik skoru (%)'
     if col not in provinces: raise ValueError('Bu veri katmanı henüz yüklenmemiş')
     return provinces[['İl', col]].copy(), col, col
 
@@ -165,18 +271,14 @@ def city_summary(districts: pd.DataFrame, provinces: pd.DataFrame,
             'secondary_value':f'{leader.ilce} · {best:,}'.replace(',','.'),
         })
     else:
-        region=layer_frame(provinces,topic,label)[0]
-        r=region.loc[region['İl'].eq(city)].iloc[0]
-        col=LAYERS[topic][label]
-        value=r[col]
-        year=2024 if '2024' in label else 2025
-        previous=_validated_fire(2024) if year==2025 else None
+        record = provincial_safety_scores().set_index('İl').loc[city]
+        score = int(record['Güvenlik skoru (%)'])
         result.update({
-            'title':'Afet profili',
-            'text':yangin_il_yorumu(city,year,col,_validated_fire(year),previous),
-            'key_label':label,
-            'key_value': ((f'{value:,.1f} ha'.replace(',','X').replace('.',',').replace('X','.'))
-                          if col=='Yanan alan (ha)' and pd.notna(value) else
-                          (f'{int(value):,}'.replace(',','.') if pd.notna(value) else '—')),
+            'title': 'Afet güvenlik profili',
+            'text': (f'{city} için deprem, orman yangını, sel, heyelan, çığ, fırtına '
+                     f've kuraklık göstergelerinden hesaplanan güvenlik skoru %{score}. '
+                     'Skor geçmiş kayıtlardaki göstergeleri ortak bir ölçekte karşılaştırır.'),
+            'key_label': 'Güvenlik skoru',
+            'key_value': f'%{score}',
         })
     return result

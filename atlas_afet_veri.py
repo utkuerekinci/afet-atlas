@@ -76,7 +76,7 @@ def region_map()->dict[str,str]:
         for name in names:
             if name in d:raise ValueError('Tekrarlı bölge adı: '+name)
             d[name]=r
-    expected=set(provinces())
+    expected=set(provinces(ROOT/'indirilen_veriler'))
     if set(d)!=expected:raise ValueError(f'Bölge/il eşleşmesi: eksik={expected-set(d)} fazla={set(d)-expected}')
     return d
 
@@ -97,11 +97,22 @@ def fire(year:int, data_dir: Path | None = None)->pd.DataFrame:
     if abs(area-{2024:27485,2025:81473}[year])>0.51:raise ValueError('Yanan alan toplamı yayımlanan ulusal sonuçla uyuşmuyor')
     return d[['İl','Yangın sayısı','Yanan alan (ha)']].sort_values('İl').reset_index(drop=True)
 
+def safe_fire(year: int) -> pd.DataFrame:
+    """Özel veri depolama yolu kullanılamazsa paketli doğrulanmış veriyi oku."""
+    try:
+        return fire(year)
+    except (OSError, ValueError, KeyError, TypeError):
+        bundled = ROOT / 'indirilen_veriler'
+        if DATA.resolve() == bundled.resolve():
+            raise
+        return fire(year, data_dir=bundled)
+
+
 def report_provinces(afet:str)->pd.DataFrame:
     if afet not in MGM_IL:raise ValueError('Bilinmeyen MGM afet türü')
     known=MGM_IL[afet]
     rows=[]
-    for name in provinces():
+    for name in provinces(ROOT/'indirilen_veriler'):
         if name in known:
             desc,interval=known[name]
             rows.append({'İl':name,'Rapor vurgusu':2 if ('en çok' in desc or 'En yüksek' in desc) else 1,
@@ -117,11 +128,11 @@ def dryness()->pd.DataFrame:
     mapper=region_map()
     return pd.DataFrame([{'İl':name,'Bölge':mapper[name],
          'Bölge yağış sapması (%)':YAGIS_SAPMASI_2024[mapper[name]],
-         'Gözlem ölçeği':'7 bölge; il bazında ayrı ölçülmedi'} for name in provinces()])
+         'Gözlem ölçeği':'7 bölge; il bazında ayrı ölçülmedi'} for name in provinces(ROOT/'indirilen_veriler')])
 
 def get(afet:str,year:int=2024,metric:str|None=None)->dict:
     if afet=='Orman yangını':
-        tab=fire(year)
+        tab=safe_fire(year)
         col=metric if metric in ('Yangın sayısı','Yanan alan (ha)') else 'Yangın sayısı'
         return {'afet':afet,'yil':year,'tablo':tab,'harita_kolonu':col,'birim':col,
                 'ulusal_toplam':{2024:3797,2025:3224}[year] if col=='Yangın sayısı' else None,

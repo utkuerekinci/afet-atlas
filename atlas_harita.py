@@ -18,6 +18,8 @@ NUFUS_PALET = [[0.0,"#426885"],[0.24,"#4c93a6"],[0.54,"#78b9ac"],[0.77,"#f5bb79"
 
 
 def gosterge_paleti(gosterge: str):
+    if 'güvenlik skoru' in str(gosterge).casefold():
+        return [[0.0,'#db5964'],[0.28,'#ef9c72'],[0.54,'#f3c57a'],[0.74,'#68b9a9'],[1.0,'#257e9a']]
     return NUFUS_PALET if 'nüfus' in str(gosterge).casefold() else PALET
 
 

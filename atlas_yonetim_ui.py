@@ -121,8 +121,6 @@ def admin_page(settings: Settings):
                     st.error('Çok sayıda başarısız deneme. Bu oturumda 5 dakika sonra tekrar deneyebilirsin.')
                 else:
                     st.error('Kullanıcı adı veya şifre yanlış.')
-        with right:
-            st.info('Bu alanda yalnızca senin tanımladığın kullanıcı adı ve şifre geçerlidir. Ziyaretçiler veri yükleyemez.')
         return
 
     _protect()

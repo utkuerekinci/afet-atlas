@@ -172,23 +172,85 @@ button[data-baseweb="tab"][aria-selected="true"] {color:#087d87!important;}
 
 
 ORTAK_KONTROL_CSS = r"""<style>
-/* AFET ATLAS · etkilesimli kontroller — gece/gunduz ortak, tutarli kirmizi */
-:root {--atlas-red:#f04e66;--atlas-red-hover:#ff647a;--atlas-red-dark:#cf3652;}
-/* 1. Tum Streamlit selectbox ve multiselect: gercek BaseWeb kok, tetikleyici, metin ve ok. */
+/*/* 1. Tum selectbox / combobox / multiselect alanlarini tamamen kirmizi yap */
+.stApp [data-testid="stSelectbox"],
+.stApp [data-testid="stMultiSelect"] {
+  width: 100% !important;
+}
+
 .stApp [data-testid="stSelectbox"] [data-baseweb="select"],
-.stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div,
-.stApp [data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"],
 .stApp [data-testid="stMultiSelect"] [data-baseweb="select"],
+.stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div,
 .stApp [data-testid="stMultiSelect"] [data-baseweb="select"] > div,
-.stApp .stSelectbox [data-baseweb="select"] > div,
-.stApp [data-baseweb="select"] [aria-haspopup="listbox"] {
- background:#f04e66!important;
- background-color:#f04e66!important;
- border-color:#ff9baa!important;
- border-radius:12px!important;
- color:#fff!important;
- min-height:44px!important;
- box-shadow:0 3px 12px rgba(220,49,82,.15)!important;
+.stApp [data-testid="stSelectbox"] [data-baseweb="base-input"],
+.stApp [data-testid="stMultiSelect"] [data-baseweb="base-input"],
+.stApp [data-testid="stSelectbox"] [role="combobox"],
+.stApp [data-testid="stMultiSelect"] [role="combobox"],
+.stApp [data-testid="stSelectbox"] [aria-haspopup="listbox"],
+.stApp [data-testid="stMultiSelect"] [aria-haspopup="listbox"] {
+  background: #f04e66 !important;
+  background-color: #f04e66 !important;
+  border: 1px solid #f04e66 !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  min-height: 48px !important;
+  box-shadow: none !important;
+}
+
+.stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div:hover,
+.stApp [data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover,
+.stApp [data-testid="stSelectbox"] [data-baseweb="base-input"]:hover,
+.stApp [data-testid="stMultiSelect"] [data-baseweb="base-input"]:hover,
+.stApp [data-testid="stSelectbox"] [role="combobox"]:hover,
+.stApp [data-testid="stMultiSelect"] [role="combobox"]:hover {
+  background: #f04e66 !important;
+  background-color: #f04e66 !important;
+  border-color: #f04e66 !important;
+}
+
+.stApp [data-testid="stSelectbox"] * ,
+.stApp [data-testid="stMultiSelect"] * {
+  color: #ffffff !important;
+}
+
+.stApp [data-testid="stSelectbox"] input,
+.stApp [data-testid="stMultiSelect"] input,
+.stApp [data-testid="stSelectbox"] div,
+.stApp [data-testid="stMultiSelect"] div,
+.stApp [data-testid="stSelectbox"] span,
+.stApp [data-testid="stMultiSelect"] span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.stApp [data-testid="stSelectbox"] svg,
+.stApp [data-testid="stMultiSelect"] svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Acilan secenek listesi */
+body [role="listbox"],
+body ul[role="listbox"],
+body [data-baseweb="menu"] {
+  background: #ffffff !important;
+  border: 1px solid #f1a3b0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.18) !important;
+}
+
+body [role="option"] {
+  background: #ffffff !important;
+  color: #203249 !important;
+  font-weight: 600 !important;
+}
+
+body [role="option"]:hover,
+body [role="option"][aria-selected="true"] {
+  background: #ffe1e7 !important;
+  color: #a32643 !important;
+}
 }
 .stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div:hover,
 .stApp [data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover,

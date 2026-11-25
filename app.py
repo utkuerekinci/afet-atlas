@@ -147,6 +147,28 @@ a {color:#7ce8d9!important;}
 .mini-stat-label {color:#9bb0c6; font-size:11px; margin-bottom:5px;}
 .mini-stat-value {color:#eaf7ff; font-size:25px; font-weight:700; font-family:'Space Grotesk',sans-serif;}
 .footer-brand {margin-top:35px; padding:16px 0; border-top:1px solid #29384b; color:#8399b2; font-size:11px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+/* Ana sayfa alt bilgisindeki küçük yönetici erişimi; yalnızca görünüm. */
+.atlas-footer-rule {margin-top:35px; padding-top:12px; border-top:1px solid #29384b;}
+.atlas-footer-text {color:#8399b2; font-size:11px; line-height:1.65;}
+.atlas-footer-text-right {text-align:right;}
+.st-key-atlas_footer_lock button {
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  color:#8399b2!important;
+  padding:0 4px!important;
+  min-height:30px!important;
+  opacity:.6;
+}
+.st-key-atlas_footer_lock button:hover,
+.st-key-atlas_footer_lock button:focus-visible {
+  background:#132338!important;
+  color:#d5e6f3!important;
+  opacity:1;
+}
+.st-key-atlas_footer_lock button:focus-visible {outline:2px solid #6395b8!important;outline-offset:2px;}
+@media(max-width:700px){.atlas-footer-text-right{text-align:left;}}
+
 @media(max-width:1000px){.radar {width:170px; height:170px;}.hero{padding:27px;min-height:230px}.metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){[data-testid="stMain"] .block-container{padding:1rem 1rem 3rem}.radar{display:none}.hero{padding:26px 21px;min-height:210px}.hero h1{font-size:2.45rem}.metrics{gap:9px}.metric{padding:15px;min-height:111px}.metric-value{font-size:2rem}.metric-label{font-size:9px}}
 [data-testid="stSidebar"] [role="radiogroup"] label {background:#132338; border:1px solid #263b52; border-radius:12px; padding:9px 10px; margin-bottom:3px;}
@@ -439,10 +461,6 @@ with st.sidebar:
                      type='primary' if module==target else 'secondary',
                      use_container_width=True):
             git_modul(target)
-    st.divider()
-    if st.button('🔒  Yönetici Girişi',key='nav_admin',
-                 type='primary' if module=='Yönetici Girişi' else 'secondary',use_container_width=True):
-        git_modul('Yönetici Girişi')
     st.caption('Seçili il: '+st.session_state.get('secilen_il','Ankara'))
     # Afet türü ve deprem filtreleri v4.5'teki gibi haritanın yakınında kalır.
 
@@ -814,4 +832,24 @@ else:
 - **“Neden Bu İlçe Birinci?”** sıralama, ağırlık ve katkılardan otomatik hesaplanır.
 """)
 
-st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.12</span></div>',unsafe_allow_html=True)
+# Yönetici girişi yalnızca ana sayfanın en altındaki küçük kilitte görünür.
+# Buton gerçek bir Streamlit widget'ıdır: session_state üzerinden yönetici ekranını açar.
+if module == 'Genel Bakış':
+    st.markdown('<div class="atlas-footer-rule"></div>', unsafe_allow_html=True)
+    footer_left, footer_lock, footer_right = st.columns(
+        [3.5, 0.35, 3.2], gap='small', vertical_alignment='center'
+    )
+    with footer_left:
+        st.markdown('<div class="atlas-footer-text">◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</div>',
+                    unsafe_allow_html=True)
+    with footer_lock:
+        with st.container(key='atlas_footer_lock'):
+            if st.button('🔒', key='footer_admin', type='tertiary',
+                         help='Yönetici girişi'):
+                git_modul('Yönetici Girişi')
+    with footer_right:
+        st.markdown('<div class="atlas-footer-text atlas-footer-text-right">BBY261 · Python · Google ADK · Gemini · v4.12</div>',
+                    unsafe_allow_html=True)
+else:
+    st.markdown('<div class="footer-brand"><span>◉ AFET ATLAS · TÜRKİYE BÖLGESEL ANALİZ</span><span>BBY261 · Python · Google ADK · Gemini · v4.12</span></div>',
+                unsafe_allow_html=True)

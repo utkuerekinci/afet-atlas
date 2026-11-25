@@ -93,8 +93,11 @@ class GitHubDataRepository:
     def _request(self, method: str, endpoint: str, **kwargs):
         if not endpoint.startswith('/') or '://' in endpoint:
             raise DataRepositoryError('Geçersiz GitHub API yolu.')
+        # GitHub REST API: depo kok adresinde sona "/" eklemek 404 donebilir.
+        # Diger uc noktalar (/branches, /contents vb.) normal yoluyla kalir.
+        url = self.api if endpoint == '/' else self.api + endpoint
         try:
-            resp = self.session.request(method, self.api + endpoint,
+            resp = self.session.request(method, url,
                                         headers=self.headers, timeout=(7, 25), **kwargs)
         except requests.RequestException as exc:
             raise DataRepositoryError('GitHub bağlantısı kurulamadı.') from exc

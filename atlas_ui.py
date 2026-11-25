@@ -51,11 +51,10 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
     from atlas_sabit_harita import hazirla_harita, il_olayi
 
     chosen = st.session_state.get('secilen_il', 'Ankara')
-    gunduz = bool(st.session_state.get('atlas_gunduz_modu', False))
-    harita = hazirla_harita(province, col, label, chosen, gunduz=gunduz)
+    harita = hazirla_harita(province, col, label, chosen)
     result = st_folium(
         harita, height=425, use_container_width=True,
-        key='sabit_harita_'+key+('_gunduz' if gunduz else '_gece'),
+        key='sabit_harita_'+key,
         returned_objects=['last_object_clicked','last_object_clicked_count'] if secim else [],
     )
     new = il_olayi(result) if secim else None
@@ -74,7 +73,7 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
                     '#426885,#4c93a6,#78b9ac,#f5bb79,#ea7566'
                     if 'nüfus' in str(label).casefold()
                     else '#20354c,#277080,#57a69b,#f5bb79,#ea7566')
-        legend_color = '#4b637a' if gunduz else '#acc4d5'
+        legend_color = '#acc4d5'
         st.markdown(
             f'<div style="display:flex;align-items:center;gap:11px;color:{legend_color};font-size:11px;'
             'margin:3px 0 7px">'
@@ -132,17 +131,16 @@ def _bar(df: pd.DataFrame, score: str, n: int = 10):
     """Sabit puan çubukları: skor yalnızca çubuğun üstüne gelince görünür."""
     plot = df.head(n).sort_values(score, ascending=True)
     labels = plot.il.astype(str) + ' / ' + plot.ilce.astype(str)
-    gunduz = bool(st.session_state.get('atlas_gunduz_modu', False))
     fig = go.Figure(go.Bar(
         x=plot[score], y=labels, orientation='h', marker_color='#66d7c8',
         hovertemplate='<b>%{y}</b><br>Puan: %{x:.1f}<extra></extra>',
-        hoverlabel=dict(bgcolor='#ffffff' if gunduz else '#173149',
-                        font=dict(color='#20344b' if gunduz else '#f3fafb',size=12)),
+        hoverlabel=dict(bgcolor='#173149',
+                        font=dict(color='#f3fafb',size=12)),
     ))
     fig.update_layout(
         height=max(345, len(plot) * 35 + 80), margin=dict(l=4,r=9,t=10,b=5),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#243b53' if gunduz else '#d5e7f2',size=11), dragmode=False, hovermode='closest',
+        font=dict(color='#d5e7f2',size=11), dragmode=False, hovermode='closest',
         xaxis=dict(range=[0,105],fixedrange=True,showticklabels=False,
                    showgrid=False,zeroline=False,title=None,showline=False),
         yaxis=dict(fixedrange=True,showgrid=False,title=None,automargin=True),

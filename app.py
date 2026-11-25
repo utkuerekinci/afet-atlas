@@ -42,7 +42,7 @@ from atlas_analiz import illere_ozet
 from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
 from genel_bakis import (OVERVIEW_TOPICS, TOPIC_DESCRIPTIONS, TOPIC_DESTINATIONS,
                          prepare_provinces, available_layers, layer_frame, city_summary)
-from atlas_tema import gunduz_tema_css, ortak_kontrol_css
+from atlas_tema import ortak_kontrol_css
 
 
 # Yalnızca görsel tasarım: hesaplamalar hesaplama.py dosyasında tutulur.
@@ -465,9 +465,6 @@ with st.sidebar:
     st.markdown('<div class="overline"><span class="dot"></span> BBY261 · İLERİ PROGRAMLAMA</div>'
                 '<div class="sidebar-head">AFET ATLAS</div>'
                 '<div class="sidebar-small">☰ Menü · Bölümler</div>',unsafe_allow_html=True)
-    # Varsayılan eski görünüm: gece; geçiş yalnızca bu ziyaretçi oturumunu etkiler.
-    st.toggle('☀️ Gündüz modu',key='atlas_gunduz_modu',
-              help='Kapalıyken mevcut gece teması kullanılır. Açınca açık renkli gündüz görünümü uygulanır.')
     if st.button('⌂  Genel Bakış',key='nav_home',type='primary' if module=='Genel Bakış' else 'secondary',use_container_width=True):
         git_modul('Genel Bakış')
     with st.expander('▾  Analizler',expanded=module in ('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
@@ -489,13 +486,7 @@ with st.sidebar:
     st.caption('Seçili il: '+st.session_state.get('secilen_il','Ankara'))
     # Afet türü ve deprem filtreleri v4.5'teki gibi haritanın yakınında kalır.
 
-# Gündüz CSS'i orijinal koyu tasarımın ardından yüklenir; gece modunda
-# mevcut stiller ve tüm analizler aynen korunur.
-if st.session_state.get('atlas_gunduz_modu', False):
-    st.markdown(gunduz_tema_css(),unsafe_allow_html=True)
-    st.markdown('<span data-atlas-day="true" style="display:none"></span>', unsafe_allow_html=True)
-
-# BaseWeb selectbox, acilir yardim ve Gemini butonlari: iki temada da son CSS katmani.
+# BaseWeb selectbox, acilir yardim ve Gemini butonlari: koyu tema ortak kontrol stili.
 st.markdown(ortak_kontrol_css(),unsafe_allow_html=True)
 
 
@@ -828,8 +819,6 @@ elif module=='Yardım':
         st.write('Yalnızca Gemini ile daha fazla bilgi düğmesine basınca çalışır. İstersen mevcut Python açıklamalarını da okuyabilirsin.')
     with st.expander('Yönetici paneli herkese açık mı?'):
         st.write('Yönetici giriş sayfasına herkes ulaşabilir, ancak veri ekleme, güncelleme, yayından kaldırma ve geri alma işlemleri yalnızca yetkili yönetici hesabının kullanıcı adı ve şifresiyle giriş yapıldığında kullanılabilir.')
-    with st.expander('Gece ve gündüz görünümü nasıl değiştirilir?'):
-        st.write('Sol menüdeki ☀️ Gündüz modu seçeneğini açarak açık temaya geçebilirsin. Kapatırsan Afet Atlas’ın varsayılan gece görünümüne dönersin. Seçimin yalnızca açık oturum için geçerlidir.')
     st.markdown('#### Proje ve kaynak kod')
     st.write('Afet Atlas\'ın geliştirme dosyalarını, proje açıklamalarını ve sürüm geçmişini GitHub üzerinden inceleyebilirsin.')
     repo_link = github_kod_deposu_baglantisi()

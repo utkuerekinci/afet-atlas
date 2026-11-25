@@ -72,8 +72,7 @@ def _value_string(value: float | int | None) -> str:
     return f'{float(value):,.1f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 
-def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str,
-                  gunduz: bool = False) -> folium.Map:
+def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str) -> folium.Map:
     """Her il için gerçek geometrinin tüm yüzeyini tıklanabilir yapar."""
     if not {'İl', deger}.issubset(tablo.columns):
         raise ValueError('Harita için İl ve gösterge sütunu gerekiyor.')
@@ -111,17 +110,17 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str,
         keyboard=False, attribution_control=False, prefer_canvas=True,
         max_bounds=True,
     )
-    map_bg = '#edf5fa' if gunduz else '#0c1a2e'
-    tooltip_bg = '#ffffff' if gunduz else '#142a40'
-    tooltip_fg = '#1c3b52' if gunduz else '#eafbf7'
-    tooltip_border = '#a5c2cf' if gunduz else '#3d6e7d'
+    map_bg = '#0c1a2e'
+    tooltip_bg = '#142a40'
+    tooltip_fg = '#eafbf7'
+    tooltip_border = '#3d6e7d'
     m.get_root().header.add_child(folium.Element(f'''<style>
       .leaflet-container{{background:{map_bg}!important;cursor:default!important;}}
       .atlas-score-label{{background:transparent!important;border:0!important;pointer-events:none!important;}}
       .atlas-score-chip{{display:block;min-width:24px;padding:1px 2px;border-radius:4px;
-        background:{'rgba(255,255,255,.93)' if gunduz else 'rgba(8,19,33,.91)'};
-        color:{'#173952' if gunduz else '#f1fcff'};font:bold 10px/14px sans-serif;
-        box-shadow:0 0 0 1px {'rgba(10,54,77,.22)' if gunduz else 'rgba(179,230,242,.24)'};
+        background:rgba(8,19,33,.91);
+        color:#f1fcff;font:bold 10px/14px sans-serif;
+        box-shadow:0 0 0 1px rgba(179,230,242,.24);
         white-space:nowrap;text-align:center;pointer-events:none!important;}}
       .leaflet-interactive{{cursor:pointer!important;}}
       .leaflet-tooltip{{background:{tooltip_bg};color:{tooltip_fg};border:1px solid {tooltip_border};
@@ -133,14 +132,13 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str,
         name='İller',
         style_function=lambda feat: {
             'fillColor': feat['properties']['dolgu'],
-            'color': ('#db405b' if gunduz else '#b8f8eb') if feat['properties']['secili']
-                     else ('#5e758b' if gunduz else '#14253b'),
+            'color': '#b8f8eb' if feat['properties']['secili'] else '#14253b',
             'weight': 2.8 if feat['properties']['secili'] else 0.9,
             'fillOpacity': 0.95,
             'opacity': 1,
         },
         highlight_function=lambda feat: {
-            'color': '#d43b55' if gunduz else '#fafcff', 'weight': 2.2, 'fillOpacity': 1,
+            'color': '#fafcff', 'weight': 2.2, 'fillOpacity': 1,
         },
         tooltip=folium.GeoJsonTooltip(
             fields=['il'], labels=False,

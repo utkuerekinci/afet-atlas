@@ -148,6 +148,137 @@ ORTAK_KONTROL_CSS = r"""<style>
  .stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div {min-height:42px!important;}
  .stApp .st-key-yasam_tercih_grubu [data-testid="stRadio"] [role="radiogroup"] label {min-height:48px!important;padding:9px 11px!important;}
 }
+
+/* v4.15: SADECE istenen harita/afet filtreleri, Analizler menusunun mavisi.
+   Yalnizca widget key siniflari hedeflenir. Gemini, Yardim, ilce karsilastirma,
+   yonetici paneli ve navigasyon dugmeleri bu mavi kurala dahil DEGILDIR. */
+:root {
+ --atlas-filter-blue:#204b76;
+ --atlas-filter-blue-hover:#2b608f;
+ --atlas-filter-blue-border:#438bc1;
+}
+/* Kapsam:
+   Harita gostergesi (ana sayfa, yasam, ticaret, yangin),
+   Sehir ara/sec + Haritada incelenecek il (il_secimi fonksiyonunun tum anahtarlari),
+   Analiz edilecek sektor, afet turu, deprem yil/buyukluk/yakinlik. */
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],
+ .st-key-yasam_layer,
+ .st-key-ticaret_layer,
+ .st-key-v36_fire_metric,
+ [class*="st-key-il_select_"],
+ .st-key-v34_sektor,
+ .st-key-v36_disaster,
+ .st-key-v45_year_start,
+ .st-key-v45_year_end,
+ .st-key-v45_min_m,
+ .st-key-v45_distance
+) [data-baseweb="select"],
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],
+ .st-key-yasam_layer,
+ .st-key-ticaret_layer,
+ .st-key-v36_fire_metric,
+ [class*="st-key-il_select_"],
+ .st-key-v34_sektor,
+ .st-key-v36_disaster,
+ .st-key-v45_year_start,
+ .st-key-v45_year_end,
+ .st-key-v45_min_m,
+ .st-key-v45_distance
+) [data-baseweb="select"] :is(div,input,[role="combobox"],[data-baseweb="base-input"],[data-baseweb="input"]) {
+ background:var(--atlas-filter-blue)!important;
+ background-color:var(--atlas-filter-blue)!important;
+ background-image:none!important;
+ border-color:var(--atlas-filter-blue-border)!important;
+ color:#ffffff!important;
+}
+/* Tek cizgi, duzgun radius ve min yukseklik yalnizca dis gorunen kabukta. */
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [data-baseweb="select"] > div:first-child {
+ border:1px solid var(--atlas-filter-blue-border)!important;
+ border-radius:12px!important;
+ min-height:48px!important;
+ box-shadow:0 3px 12px rgba(17,62,103,.24)!important;
+}
+/* BaseWeb'in dis kabugunun :hover kuralina ozellikle ustun gelir;
+   onceki kirmizi CSS bu kabugu mouse uzerindeyken kirmizi birakiyordu. */
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [data-baseweb="select"] > div:first-child:hover,
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [data-baseweb="select"]:hover > div:first-child {
+ background:var(--atlas-filter-blue-hover)!important;
+ background-color:var(--atlas-filter-blue-hover)!important;
+ border-color:#73b9ee!important;
+}
+/* Hover, hangi BaseWeb ic katmaninin arka plani boyanmis olursa olsun mavi. */
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [data-baseweb="select"]:hover,
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [data-baseweb="select"]:hover :is(div,input,[role="combobox"]) {
+ background:var(--atlas-filter-blue-hover)!important;
+ background-color:var(--atlas-filter-blue-hover)!important;
+ border-color:#73b9ee!important;
+}
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [data-baseweb="select"]:focus-within {
+ outline:2px solid #87c7f1!important;
+ outline-offset:2px!important;
+}
+/* Metin/ok beyaz; dis widget etiketi degismez. */
+.stApp :is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [data-baseweb="select"] :is(span,input,svg) {
+ color:#fff!important;
+ fill:currentColor!important;
+ -webkit-text-fill-color:#fff!important;
+}
+/* Secim listesi portal olarak body altinda acilir; mavi filtre acikken
+   liste sinirinda da ayni mavi kullanilir. Diger listeler etkilenmez. */
+body:has(:is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [aria-expanded="true"]) [data-baseweb="popover"] [role="listbox"] {
+ border-color:#438bc1!important;
+}
+body:has(:is(
+ [class*="st-key-home_v40_layer_"],.st-key-yasam_layer,.st-key-ticaret_layer,
+ .st-key-v36_fire_metric,[class*="st-key-il_select_"],.st-key-v34_sektor,
+ .st-key-v36_disaster,.st-key-v45_year_start,.st-key-v45_year_end,
+ .st-key-v45_min_m,.st-key-v45_distance
+) [aria-expanded="true"]) [data-baseweb="popover"] [role="option"]:is(:hover,[aria-selected="true"]) {
+ background:#2b608f!important;
+}
+
 </style>"""
 
 

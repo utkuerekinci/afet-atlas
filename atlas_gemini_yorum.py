@@ -217,7 +217,7 @@ def gemini_yorum_butonu(baglam: dict, key: str) -> None:
     payload_json=json.dumps(_native(baglam),ensure_ascii=False,sort_keys=True)
     digest=hashlib.sha256(payload_json.encode('utf-8')).hexdigest()
     memory_key='gemini_text_'+key
-    pressed=st.button(gemini_buton_metni(baglam),key='gemini_btn_'+key)
+    pressed=st.button(gemini_buton_metni(baglam),key='gemini_btn_'+key, type='primary')
     if pressed:
         secret=api_anahtari()
         if not secret:

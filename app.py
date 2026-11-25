@@ -42,7 +42,7 @@ from atlas_analiz import illere_ozet
 from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
 from genel_bakis import (OVERVIEW_TOPICS, TOPIC_DESCRIPTIONS, TOPIC_DESTINATIONS,
                          prepare_provinces, available_layers, layer_frame, city_summary)
-from atlas_tema import gunduz_tema_css
+from atlas_tema import gunduz_tema_css, ortak_kontrol_css
 
 
 # Yalnızca görsel tasarım: hesaplamalar hesaplama.py dosyasında tutulur.
@@ -493,6 +493,10 @@ with st.sidebar:
 # mevcut stiller ve tüm analizler aynen korunur.
 if st.session_state.get('atlas_gunduz_modu', False):
     st.markdown(gunduz_tema_css(),unsafe_allow_html=True)
+    st.markdown('<span data-atlas-day="true" style="display:none"></span>', unsafe_allow_html=True)
+
+# BaseWeb selectbox, acilir yardim ve Gemini butonlari: iki temada da son CSS katmani.
+st.markdown(ortak_kontrol_css(),unsafe_allow_html=True)
 
 
 def deprem_kapsami() -> tuple[int,int,float,int]:
@@ -562,10 +566,12 @@ def yardim_ipucu(konu: str) -> None:
         'Siz Sorun': 'Örnek soru seç veya kendi sorunu yaz. Soruyu Gönder düğmesiyle Afet Atlas asistanından cevap al.',
         'Veri ve Yöntem': 'Veri kaynaklarını ve puanlamanın nasıl yapıldığını bu bölümde inceleyebilirsin.',
     }
-    with st.popover('ⓘ Nasıl kullanılır?',use_container_width=False):
-        st.write(metinler.get(konu,'Bu sayfadaki göstergeleri seçerek karşılaştırma yapabilirsin.'))
-        if st.button('Yardım sayfasını aç',key='help_from_'+konu):
-            git_modul('Yardım')
+    # Sabit CSS anahtari: acilir yardim dugmesi her iki temada kirmizi kalir.
+    with st.container(key='atlas_help_trigger'):
+        with st.popover('ⓘ Nasıl kullanılır?',use_container_width=False):
+            st.write(metinler.get(konu,'Bu sayfadaki göstergeleri seçerek karşılaştırma yapabilirsin.'))
+            if st.button('Yardım sayfasını aç',key='help_from_'+konu):
+                git_modul('Yardım')
 
 
 def deprem_bul(y0:int,y1:int,m:float,d:int):

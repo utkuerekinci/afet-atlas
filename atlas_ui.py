@@ -329,8 +329,9 @@ def yasam_ticaret_sayfasi(mode:str):
             st.markdown(facts,unsafe_allow_html=True)
             pref='Dengeli'
         else:
-            pref=st.radio('Yaşam tercihi',['Dengeli','Daha sakin','Daha hareketli'],
-                          horizontal=False,key='v34_preference')
+            with st.container(key='yasam_tercih_grubu'):
+                pref=st.radio('Yaşam tercihi',['Dengeli','Daha sakin','Daha hareketli'],
+                              horizontal=False,key='v34_preference')
     local_rank,local_meta=sirala_ilceler(df,mode,'İl içi',city,sector,pref)
     with preview:
         if not local_rank.empty:

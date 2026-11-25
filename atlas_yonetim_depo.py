@@ -18,6 +18,7 @@ import tempfile
 import threading
 import time
 from typing import Any
+from urllib.parse import quote
 
 import pandas as pd
 import requests
@@ -43,7 +44,10 @@ BRANCH_RE = re.compile(r'^[A-Za-z0-9._/-]{1,120}$')
 
 
 class DataRepositoryError(Exception):
-    pass
+    """Kullanıcıya gösterilecek güvenli hata; URL veya token içermez."""
+    def __init__(self, message: str, status_code: int | None = None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 @dataclass(frozen=True)
@@ -96,12 +100,25 @@ class GitHubDataRepository:
             raise DataRepositoryError('GitHub bağlantısı kurulamadı.') from exc
         if resp.status_code not in (200, 201):
             if resp.status_code in (401, 403):
-                raise DataRepositoryError('GitHub erişim anahtarı veya depo yetkileri yetersiz.')
+                raise DataRepositoryError(
+                    'GitHub tokenı geçersiz veya özel veri deposu için gerekli izinleri içermiyor '
+                    '(Contents: Read and write).', resp.status_code)
             if resp.status_code == 404:
-                raise DataRepositoryError('Özel veri deposu / dosya bulunamadı. Depo adını ve izinlerini kontrol et.')
+                if endpoint == '/':
+                    detail = ('GitHub API özel veri deposuna erişemiyor (HTTP 404). '
+                              'Depo adını, tokenın seçili depo erişimini ve tokenın süresini kontrol et.')
+                elif endpoint.startswith('/branches/'):
+                    detail = ('Özel depoya erişildi ancak ayarlanan dal bulunamadı (HTTP 404). '
+                              'Streamlit Secrets içindeki AFET_ATLAS_VERI_DALI değerini kontrol et.')
+                else:
+                    detail = 'Özel GitHub deposundaki istenen dosya/klasör bulunamadı (HTTP 404).'
+                raise DataRepositoryError(detail, 404)
             if resp.status_code in (409, 422):
-                raise DataRepositoryError('GitHub sürüm çatışması veya geçersiz işlem; sayfayı yenileyip tekrar dene.')
-            raise DataRepositoryError(f'GitHub işlemi tamamlanamadı (HTTP {resp.status_code}).')
+                raise DataRepositoryError(
+                    'GitHub sürüm çatışması veya geçersiz işlem; sayfayı yenileyip tekrar dene.',
+                    resp.status_code)
+            raise DataRepositoryError(
+                f'GitHub işlemi tamamlanamadı (HTTP {resp.status_code}).', resp.status_code)
         return resp.json()
 
     def check_access(self):
@@ -110,6 +127,8 @@ class GitHubDataRepository:
             raise DataRepositoryError('GitHub deposu kimliği uyuşmuyor.')
         if not data.get('private', False):
             raise DataRepositoryError('Veri deposu PRIVATE olmalı. Veri yayınlanmadı.')
+        # Özel depo var fakat main/master farklıysa dosya hatası gibi görünmesin.
+        self._request('GET', '/branches/' + quote(self.settings.branch, safe=''))
         return True
 
     def index(self) -> dict[str, str]:
@@ -118,7 +137,7 @@ class GitHubDataRepository:
             data = self._request('GET', '/contents/indirilen_veriler',
                                  params={'ref':self.settings.branch})
         except DataRepositoryError as exc:
-            if 'dosya bulunamadı' in str(exc):
+            if exc.status_code == 404:
                 return {}  # Yeni açılan, henüz verisiz private repo.
             raise
         if not isinstance(data, list):
@@ -147,7 +166,7 @@ class GitHubDataRepository:
         try:
             existing_sha=self.get(filename)[1]
         except DataRepositoryError as exc:
-            if 'dosya bulunamadı' in str(exc):
+            if exc.status_code == 404 or 'dosya bulunamadı' in str(exc):
                 existing_sha=None
             else:
                 raise
@@ -163,7 +182,7 @@ class GitHubDataRepository:
             data=self._request('GET','/contents/'+CONTROL_FILE,
                                params={'ref':self.settings.branch})
         except DataRepositoryError as exc:
-            if 'dosya bulunamadı' in str(exc):
+            if exc.status_code == 404:
                 return {'disabled':[]},None
             raise
         try:

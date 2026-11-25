@@ -128,24 +128,43 @@ def admin_page(settings: Settings):
     with a:st.success('Yönetici oturumu açık')
     with b:
         if st.button('Çıkış yap',use_container_width=True):_logout()
+    # Veri yükleme sekmesini GitHub bağlantısı sorunlu diye gizleme.
+    # Dosya her durumda seçilip önizlenebilir, yayınlama yalnızca bağlantı varsa yapılır.
+    client = None
+    index, disabled = {}, []
+    connection_problem = ''
     if not settings.enabled:
-        st.error('Özel veri deposu ve token henüz Secrets içinde tanımlanmamış. Yükleme yapılamaz.')
-        st.code('AFET_ATLAS_VERI_REPOSU = "utkuerekinci/afet-atlas-veri"\nAFET_ATLAS_VERI_TOKEN = "..."',language='toml')
-        return
-    st.caption('Veri deposu durumu: '+runtime_status())
-    try:
-        client=_repo_client(settings)
-        index,disabled=_repo_rows(client)
-    except DataRepositoryError as exc:
-        st.error(str(exc))
-        return
-    st.info('📤 Veri yüklemek veya güncellemek için aşağıdaki **Veri yükle / güncelle** sekmesini kullan. '
-            'Önce dosyayı seçip doğrula, ardından onayla ve özel veri deposuna yayınla.')
+        connection_problem = 'Streamlit Secrets içinde özel GitHub veri deposu veya token tanımlı değil.'
+    else:
+        try:
+            client = _repo_client(settings)
+            index, disabled = _repo_rows(client)
+        except DataRepositoryError as exc:
+            connection_problem = str(exc)
+    repo_ready = not connection_problem
+    if repo_ready:
+        st.caption('Veri deposu durumu: ' + runtime_status())
+    else:
+        st.error('Özel GitHub veri deposu bağlantısı kurulamadı. Dosyaları seçip kontrol '
+                 'edebilirsin, ancak bağlantı düzelene kadar yayınlama devre dışı.')
+        with st.expander('GitHub bağlantısını kontrol et', expanded=True):
+            st.write(connection_problem)
+            st.write('**Ayarlanan veri deposu:** `' + (settings.repo or 'Tanımlı değil') + '`')
+            st.write('**Ayarlanan dal:** `' + settings.branch + '`')
+            st.markdown('**Kontrol et:** GitHub’da özel repo adının birebir aynı olması; '
+                        'Streamlit Secrets içindeki `AFET_ATLAS_VERI_REPOSU` ve '
+                        '`AFET_ATLAS_VERI_DALI`; fine-grained tokenın bu özel depoyu '
+                        '**Only select repositories** listesinde içermesi ve '
+                        '**Contents: Read and write** izninin bulunması.')
+            if st.button('Bağlantıyı yeniden dene', key='atlas_admin_retry_connection'):
+                st.rerun()
+    st.caption('Veri yüklemek için ilk sekmeyi aç: dosya seç, doğrula ve bağlantı '
+               'sağlandığında yayınla.')
     tabs=st.tabs(['📤 Veri yükle / güncelle','📂 Veri setleri','🕘 Sürüm geçmişi','⚙️ Kurulum bilgisi'])
     with tabs[1]:
         st.markdown('#### Yönetilebilir veri kaynakları')
         for name,spec in DATASETS.items():
-            status=('Devre dışı' if name in disabled else 'Özel depoda' if name in index else
+            status=('Bağlantı bekleniyor' if not repo_ready else 'Devre dışı' if name in disabled else 'Özel depoda' if name in index else
                     'Paketli başlangıç verisi' if (settings.enabled and name not in index) else 'Bulunamadı')
             c1,c2,c3=st.columns([3.5,1.5,1.6])
             with c1:
@@ -155,7 +174,7 @@ def admin_page(settings: Settings):
             with c3:
                 if not spec['required']:
                     if st.button('Etkinleştir' if name in disabled else 'Yayından kaldır',
-                                 key='admin_toggle_'+name,use_container_width=True):
+                                 key='admin_toggle_'+name,use_container_width=True,disabled=not repo_ready):
                         try:
                             _protect()
                             client.set_disabled(name,name not in disabled)
@@ -199,7 +218,8 @@ def admin_page(settings: Settings):
                 is_verified=False
         confirm=st.checkbox('Bu dosyanın mevcut yayındaki veriyi değiştireceğini onaylıyorum.',value=False)
         if st.button('Doğrulanan Veriyi Yayınla',type='primary',
-                     disabled=not(is_verified and confirm and source.strip()),use_container_width=True):
+                     disabled=not(repo_ready and is_verified and confirm and source.strip()),
+                     use_container_width=True):
             try:
                 commit=_publish(settings,selected,raw,source)
                 st.session_state.pop('_atlas_admin_checked_hash',None)
@@ -208,36 +228,41 @@ def admin_page(settings: Settings):
                     st.warning('Veri GitHub’a kaydedildi ancak henüz canlı okuma önbelleğine uygulanamadı. Yönetim ekranında depo durumunu kontrol et.')
                 st.rerun()
             except (DataRepositoryError,ValueError,PermissionError) as exc:st.error(str(exc))
+        if not repo_ready:
+            st.caption('Bağlantı kurulunca doğruladığın dosyayı yeniden seçerek yayınlayabilirsin.')
         st.caption('Dosya seçimi ve önizleme ziyaretçilere açık değildir. Kaynak kod deposuna veri yazılmaz.')
     with tabs[2]:
-        fname=st.selectbox('Geri dönülecek veri seti',list(DATASETS),key='atlas_history_name',
-                           format_func=lambda x:DATASETS[x]['title'])
-        try:
-            commits=client.commits(fname)
-            if not commits:st.info('Bu veri setinin özel repoda henüz commit geçmişi bulunmuyor.')
-            else:
-                opts={x['sha']:x for x in commits}
-                chosen=st.selectbox('Sürüm seç',list(opts),
-                    format_func=lambda x:opts[x]['date'][:10]+' · '+opts[x]['message'][:65]+' · '+x[:7])
-                if st.button('Önceki Sürümü Önizle'):
-                    raw,_=client.get(fname,ref=chosen)
-                    info=validate_upload(fname,raw,Path(os.environ.get('AFET_ATLAS_DATA_DIR') or __import__('atlas_yonetim_depo').BUNDLED))
-                    st.session_state['_atlas_history_checked']=(fname,chosen,sha256(raw).hexdigest())
-                    st.success(info['ozet'])
-                    st.dataframe(info['preview'],hide_index=True,use_container_width=True)
-                can_restore=st.session_state.get('_atlas_history_checked')
-                ready=bool(can_restore and can_restore[:2]==(fname,chosen))
-                confirm=st.checkbox('Seçilen eski sürümün yeniden yayınlanmasını onaylıyorum.',
-                                    key='atlas_history_confirm')
-                if st.button('Seçilen Sürüme Geri Dön',disabled=not(ready and confirm)):
-                    _protect()
-                    raw,_=client.get(fname,ref=chosen)
-                    if sha256(raw).hexdigest()!=can_restore[2]:
-                        raise DataRepositoryError('Önizlemeden sonra dosya değişti.')
-                    commit=_publish(settings,fname,raw,'Önceki sürüme dönüş '+chosen[:10])
-                    st.success('Önceki sürüm yeniden yayınlandı: '+commit[:10])
-                    st.rerun()
-        except (DataRepositoryError,ValueError) as exc:st.error(str(exc))
+        if not repo_ready:
+            st.info('Sürüm geçmişi için önce özel GitHub deposuna bağlantı kurulmalı.')
+        else:
+            fname=st.selectbox('Geri dönülecek veri seti',list(DATASETS),key='atlas_history_name',
+                               format_func=lambda x:DATASETS[x]['title'])
+            try:
+                commits=client.commits(fname)
+                if not commits:st.info('Bu veri setinin özel repoda henüz commit geçmişi bulunmuyor.')
+                else:
+                    opts={x['sha']:x for x in commits}
+                    chosen=st.selectbox('Sürüm seç',list(opts),
+                        format_func=lambda x:opts[x]['date'][:10]+' · '+opts[x]['message'][:65]+' · '+x[:7])
+                    if st.button('Önceki Sürümü Önizle'):
+                        raw,_=client.get(fname,ref=chosen)
+                        info=validate_upload(fname,raw,Path(os.environ.get('AFET_ATLAS_DATA_DIR') or __import__('atlas_yonetim_depo').BUNDLED))
+                        st.session_state['_atlas_history_checked']=(fname,chosen,sha256(raw).hexdigest())
+                        st.success(info['ozet'])
+                        st.dataframe(info['preview'],hide_index=True,use_container_width=True)
+                    can_restore=st.session_state.get('_atlas_history_checked')
+                    ready=bool(can_restore and can_restore[:2]==(fname,chosen))
+                    confirm=st.checkbox('Seçilen eski sürümün yeniden yayınlanmasını onaylıyorum.',
+                                        key='atlas_history_confirm')
+                    if st.button('Seçilen Sürüme Geri Dön',disabled=not(ready and confirm)):
+                        _protect()
+                        raw,_=client.get(fname,ref=chosen)
+                        if sha256(raw).hexdigest()!=can_restore[2]:
+                            raise DataRepositoryError('Önizlemeden sonra dosya değişti.')
+                        commit=_publish(settings,fname,raw,'Önceki sürüme dönüş '+chosen[:10])
+                        st.success('Önceki sürüm yeniden yayınlandı: '+commit[:10])
+                        st.rerun()
+            except (DataRepositoryError,ValueError) as exc:st.error(str(exc))
     with tabs[3]:
         st.markdown('**Kod reposu:** https://github.com/utkuerekinci/afet-atlas')
         st.markdown('**Özel veri reposu:** `'+settings.repo+'` (yalnızca yönetici erişebilir)')

@@ -43,6 +43,7 @@ from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
 from genel_bakis import (OVERVIEW_TOPICS, TOPIC_DESCRIPTIONS, TOPIC_DESTINATIONS,
                          prepare_provinces, available_layers, layer_frame, city_summary)
 from atlas_tema import ortak_kontrol_css
+from atlas_kaydirma import kaydirma_butonu
 
 
 # Yalnızca görsel tasarım: hesaplamalar hesaplama.py dosyasında tutulur.
@@ -447,6 +448,7 @@ with st.sidebar:
 
 # BaseWeb selectbox, acilir yardim ve Gemini butonlari: koyu tema ortak kontrol stili.
 st.markdown(ortak_kontrol_css(),unsafe_allow_html=True)
+kaydirma_butonu()
 
 
 def deprem_kapsami() -> tuple[int,int,float,int]:

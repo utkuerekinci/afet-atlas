@@ -746,7 +746,8 @@ elif module=='Siz Sorun':
         '2025 orman yangını sayısına göre en yüksek 10 il hangisi?',
         '2024 yılında kaç sel ve fırtına afeti raporlanmış?',
         '2024 yılında Van ilindeki çığ kayıtları ne gösteriyor?',
-        '2024 yağışları hangi coğrafi bölgelerde normale göre azdı?'])
+        '2024 yağışları hangi coğrafi bölgelerde normale göre azdı?'],
+        key='adk_example_question',filter_mode=None)
     query=st.text_area('Sorunuz',value='' if example=='Kendi sorum' else example,height=100,key='v34_question_'+example)
     if st.button('✦ Soruyu gönder',type='primary',disabled=not api_anahtari(),use_container_width=True):
         try:

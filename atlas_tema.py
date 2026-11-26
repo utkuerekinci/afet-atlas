@@ -172,6 +172,17 @@ ORTAK_KONTROL_CSS = r"""<style>
   background-color: var(--atlas-filter-blue-hover) !important;
   border-color: #73b9ee !important;
 }
+/* Siz Sorun > Ornek soru: secim listesi acilir, ancak yazma imleci gorunmez.
+   filter_mode=None yazma/arama islevini kapatir. Bu CSS sadece o kutuya aittir.
+   "Sorunuz" text_area ise tamamen duzenlenebilir kalir. */
+.stApp .st-key-adk_example_question input,
+.stApp .st-key-adk_example_question input[role="combobox"],
+.stApp .st-key-adk_example_question .react-aria-Input {
+  caret-color: transparent !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
 /* Do not recolor dropdowns belonging to district comparisons or admin. */
 /* 2. Nasıl kullanılır? = st.popover düğmesi. */
 .stApp .st-key-atlas_help_trigger button,

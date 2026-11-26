@@ -40,30 +40,33 @@ def diger_afet_sayfasi(afet:str)->None:
 
     city=il_secimi(sorted(df.İl.tolist()),f'v36_{afet}_{year}',label='Şehir ara / seç')
     st.markdown('#### Türkiye haritası · '+afet)
-    ortak_harita(il_sinirlari(),df[['İl',col]].copy(),col,record['birim'],f'v36_{afet}_{year}_{col}')
+    map_column,info_column=st.columns([2.1,1],gap='medium')
+    with map_column:
+        ortak_harita(il_sinirlari(),df[['İl',col]].copy(),col,record['birim'],f'v36_{afet}_{year}_{col}')
     city=st.session_state.get('secilen_il',city)
     row=df.set_index('İl').loc[city]
-    with st.container(border=True):
-        st.markdown('#### '+city+' · '+afet)
-        if record['tip']=='ikincil_sayisal':
-            if pd.notna(row['Yangın sayısı']):
-                st.metric('Yangın sayısı',f'{int(row["Yangın sayısı"]):,}'.replace(',','.'))
-            else:st.metric('Yangın sayısı','—')
-            if pd.notna(row['Yanan alan (ha)']):
-                st.metric('Yanan orman alanı',f'{row["Yanan alan (ha)"]:,.1f} ha'.replace(',','X').replace('.',',').replace('X','.'))
-            else:st.metric('Yanan orman alanı','—')
-            st.markdown('**İlin yangın profili**')
-            existing=yangin_il_yorumu(city,year,col,df,safe_fire(2024) if year==2025 else None)
-            st.write(existing)
-        elif record['tip']=='rapor_kaniti':
-            if pd.notna(row['Rapor vurgusu']):
-                st.success('**Raporda yer alıyor.** '+row['Açıklama'])
-                st.write('Kaydedilen olay aralığı: '+str(row['Olay aralığı']))
-            else:
-                st.write('Bu il için rapor metninde ayrıntılı bir il kaydı bulunmuyor.')
-        else:
-            st.metric('2024 bölgesel yıllık yağış farkı',f'{row[col]:+.1f}%'.replace('.',','))
-            st.caption(f'Coğrafi bölge: **{row["Bölge"]}**')
+    with info_column:
+      with st.container(border=True):
+          st.markdown('#### '+city+' · '+afet)
+          if record['tip']=='ikincil_sayisal':
+              if pd.notna(row['Yangın sayısı']):
+                  st.metric('Yangın sayısı',f'{int(row["Yangın sayısı"]):,}'.replace(',','.'))
+              else:st.metric('Yangın sayısı','—')
+              if pd.notna(row['Yanan alan (ha)']):
+                  st.metric('Yanan orman alanı',f'{row["Yanan alan (ha)"]:,.1f} ha'.replace(',','X').replace('.',',').replace('X','.'))
+              else:st.metric('Yanan orman alanı','—')
+              st.markdown('**İlin yangın profili**')
+              existing=yangin_il_yorumu(city,year,col,df,safe_fire(2024) if year==2025 else None)
+              st.write(existing)
+          elif record['tip']=='rapor_kaniti':
+              if pd.notna(row['Rapor vurgusu']):
+                  st.success('**Raporda yer alıyor.** '+row['Açıklama'])
+                  st.write('Kaydedilen olay aralığı: '+str(row['Olay aralığı']))
+              else:
+                  st.write('Bu il için rapor metninde ayrıntılı bir il kaydı bulunmuyor.')
+          else:
+              st.metric('2024 bölgesel yıllık yağış farkı',f'{row[col]:+.1f}%'.replace('.',','))
+              st.caption(f'Coğrafi bölge: **{row["Bölge"]}**')
     gemini_yorum_butonu(afet_baglam(afet,city,year,df,col,
                                        existing if record['tip']=='ikincil_sayisal' else ''),
                         key='afet_'+afet.replace(' ','_').replace('/','_'))

@@ -83,10 +83,10 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
             '<span style="flex:1;max-width:190px;height:7px;border-radius:8px;'
             f'background:linear-gradient(90deg,{gradient})"></span>'
             f'<span>Yüksek: {v.max():,.1f}</span></div>',unsafe_allow_html=True)
-    if st.button('← Türkiye görünümü', key='map_reset_'+key):
-        st.session_state['_atlas_zoom_city']=False
-        st.rerun()
-    st.caption('Bir ile tıklandığında il sınırlarına yakınlaşılır. Türkiye görünümüne düğmeyle dönebilirsin.')
+    if zoom:
+        if st.button('← Türkiye görünümüne dön', key='map_reset_'+key):
+            st.session_state['_atlas_zoom_city']=False
+            st.rerun()
 
 
 def _il_secimi_degisti(widget_key: str):
@@ -364,8 +364,9 @@ def yasam_ticaret_sayfasi(mode:str):
             st.markdown(facts,unsafe_allow_html=True)
             if not local_rank.empty:
                 aciklama_alani(local_rank,local_meta)
-    with map_area:
-        siralama_alani(df,mode,city,sector,pref)
+    # Sıralamalar harita ve sağ panelin ALTINDA, tam içerik genişliğinde gösterilir.
+    st.markdown('---')
+    siralama_alani(df,mode,city,sector,pref)
     if mode=='ticaret':
         if status.get('osm_aktif'):
             with st.expander(f'İşletme ve ulaşım sayıları · {city}', expanded=False):

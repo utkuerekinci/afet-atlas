@@ -257,9 +257,9 @@ button[data-testid="stSidebarCollapseButton"]::after {
 .orbit-node.disaster {bottom:36px;left:-4px;color:#d0d6ff;background:#283954;border:1px solid #5c709e;}
 
 /* Mevcut sade v4.5 kahraman bölümünde, metinle yörüngeyi dengeli yerleştir. */
-.hero-return {display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:125px;}
+.hero-return {display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:0;}
 .hero-return-copy {flex:1 1 0;min-width:0;}
-.hero-return .atlas-orbit {flex:0 0 250px;margin:0 4px 0 12px;}
+.hero-return .atlas-orbit {flex:0 0 195px;width:195px;height:170px;margin:0 2px 0 8px;transform:scale(.78);transform-origin:center;}
 @media(max-width:1020px) {
  .hero-return .atlas-orbit {flex:0 0 205px;width:205px;height:205px;margin:0;}
  .hero-return .orbit-center {inset:66px 65px 66px 64px;}
@@ -277,14 +277,14 @@ button[data-testid="stSidebarCollapseButton"]::after {
  .hero-return .orbit-center span {font-size:8px;}
  .hero-return .orbit-node {position:static;font-size:10px;padding:11px 12px;box-shadow:none;}
 }
-.hero-return {padding:23px 30px 21px; margin:4px 0 17px; border-radius:20px;
+.hero-return {padding:14px 23px 13px; margin:0 0 9px; border-radius:16px;
   border:1px solid #31596b; background:linear-gradient(110deg,#173047 0%,#11243b 64%,#164152 100%);}
 .hero-return .overline{letter-spacing:.16em;font-size:10px;}
-.hero-return h1{font-family:'Space Grotesk',sans-serif!important;font-size:clamp(2.4rem,5vw,4.15rem)!important;
-  font-weight:800;letter-spacing:-.065em;line-height:1.04;margin:11px 0 5px!important;}
+.hero-return h1{font-family:'Space Grotesk',sans-serif!important;font-size:clamp(2rem,4vw,3.2rem)!important;
+  font-weight:800;letter-spacing:-.065em;line-height:1.02;margin:6px 0 3px!important;}
 .hero-return h1 em{font-style:normal;color:#71e6d9;}
-.hero-return h2{font-size:clamp(1.15rem,2.2vw,1.65rem)!important;margin:11px 0 5px!important;}
-.hero-return p{font-size:13px;color:#c5d7e4;max-width:950px;line-height:1.65;margin:3px 0;}
+.hero-return h2{font-size:clamp(1.15rem,2.2vw,1.65rem)!important;margin:4px 0 3px!important;}
+.hero-return p{font-size:12px;color:#d9e8f4;max-width:950px;line-height:1.45;margin:3px 0;}
 @media(max-width:670px){.hero-return{padding:16px 17px}.hero-return p{font-size:12px}}
 /* v4.3 — sade ve farklı ekranlara uyumlu başlık, kart ve menü */
 .compact-hero {border:1px solid #25435a; border-radius:17px; padding:19px 23px;
@@ -300,8 +300,9 @@ button[data-testid="stSidebarCollapseButton"]::after {
 .filter-strip-title span {letter-spacing:normal;color:#8bafc1;font-weight:500;}
 @media(max-width:670px){.filter-strip-title span{display:none;}}
 .quick-facts {display:flex;gap:9px;flex-wrap:wrap;margin:6px 0 13px;}
-.quick-facts span {background:#122639;border:1px solid #315166;color:#c4e5e3;
- border-radius:99px;padding:7px 12px;font-size:12px;font-weight:600;}
+.quick-facts span {background:#1a3854;border:1px solid #5694b6;color:#f4fbff;
+ border-radius:12px;padding:9px 13px;font-size:13px;font-weight:800;
+ box-shadow:0 3px 14px rgba(4,17,34,.25);}
 .compact-summary {background:#102336;border:1px solid #2b4a60;border-radius:15px;
  padding:17px 20px;margin:12px 0 18px;}
 .compact-summary h3 {font-size:1.24rem!important;margin:0 0 7px!important;}
@@ -599,19 +600,23 @@ def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
                 f'<span>{len(eslesenler)} il-olay eşleşmesi</span></div>',unsafe_allow_html=True)
     display=illers[['İl','Toplam puan','Deprem sayısı','Karşılaştırma endeksi']].copy()
     selected=il_secimi(sorted(display.İl),'overview' if overview else 'disaster',label='Haritada incelenecek il')
-    ortak_harita(geo,display,'Toplam puan','Olay puanı','overview' if overview else 'disaster')
+    map_column, info_column=st.columns([2.1,1],gap='medium')
+    with map_column:
+        ortak_harita(geo,display,'Toplam puan','Olay puanı','overview' if overview else 'disaster')
     selected=st.session_state.get('secilen_il',selected)
-    with st.container(border=True):
+    with info_column:
+      with st.container(border=True):
         province=display.set_index('İl').loc[selected]
+        st.markdown('### 📍 '+escape(selected))
         a,b=st.columns(2)
-        a.metric(f'{selected} · olay puanı',int(province['Toplam puan']))
-        b.metric('Eşleşen deprem sayısı',int(province['Deprem sayısı']))
+        a.metric('Olay puanı',int(province['Toplam puan']))
+        b.metric('Eşleşen deprem',int(province['Deprem sayısı']))
         st.write(f"{selected} için seçilen zaman ve yakınlık filtrelerinde "
                  f"{int(province['Deprem sayısı'])} eşleşen deprem bulunuyor.")
         st.markdown('#### '+selected+' · Deprem kayıtları')
         recent=secilen_il_kayitlari(eslesenler,selected)
         if recent.empty:
-            st.info('Seçilen yıl, büyüklük ve yakınlık filtrelerinde bu il için kayıt bulunmadı.')
+            st.info('Seçilen filtrelerde bu il için kayıt bulunmadı.')
         else:
             st.dataframe(recent.head(8),hide_index=True,use_container_width=True,
                          height=min(350,80+35*min(len(recent),8)))
@@ -695,9 +700,9 @@ if module=='Genel Bakış':
             with info_column:
                 with st.container(border=True):
                     st.markdown(f'### 📍 {escape(city)}')
-                    st.caption(f'{population_text} nüfus · {details["ilce"]} ilçe')
+                    st.markdown(f'<div class="quick-facts"><span>{population_text} nüfus</span><span>{details["ilce"]} ilçe</span></div>',unsafe_allow_html=True)
                     st.write(short)
-                    st.caption(f'{details["key_label"]}: {details["key_value"]}')
+                    st.markdown(f'<div class="quick-facts"><span>{escape(str(details["key_label"]))}: {escape(str(details["key_value"]))}</span></div>',unsafe_allow_html=True)
                     st.markdown('**Bu ili analiz et**')
                     for idx,target in enumerate(('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
                         if st.button(target+' →',key='home_city_nav_'+str(idx),use_container_width=True, type='primary'):

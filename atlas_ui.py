@@ -51,11 +51,12 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
     from atlas_sabit_harita import hazirla_harita, il_olayi
 
     chosen = st.session_state.get('secilen_il', 'Ankara')
-    harita = hazirla_harita(province, col, label, chosen, il_degerlerini_yaz=il_degerlerini_yaz)
+    zoom=bool(st.session_state.get('_atlas_zoom_city',False))
+    harita = hazirla_harita(province, col, label, chosen, il_degerlerini_yaz=il_degerlerini_yaz, yakinlastir=zoom)
     result = st_folium(
         harita, height=425, use_container_width=True,
         key='sabit_harita_'+key,
-        returned_objects=['last_object_clicked','last_object_clicked_count'] if secim else [],
+        returned_objects=['last_object_clicked','last_object_clicked_count','last_object_clicked_tooltip'] if secim else [],
     )
     new = il_olayi(result) if secim else None
     # Aynı GeoJSON olayı sayfa yenilenince tekrar dönebilir. Tekrar işleme.
@@ -65,6 +66,7 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
         st.session_state[signature_key] = signature
         if new in set(province['İl']) and new != chosen:
             st.session_state['secilen_il'] = new
+            st.session_state['_atlas_zoom_city'] = True
             st.rerun()
     v=pd.to_numeric(province[col],errors='coerce').dropna()
     if not v.empty:
@@ -81,11 +83,15 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
             '<span style="flex:1;max-width:190px;height:7px;border-radius:8px;'
             f'background:linear-gradient(90deg,{gradient})"></span>'
             f'<span>Yüksek: {v.max():,.1f}</span></div>',unsafe_allow_html=True)
-    st.caption('Bir ilin renkli alanına tıkla; harita sürüklenmez ve yakınlaşmaz.')
+    if st.button('↗ Türkiye haritasının tamamını göster', key='map_reset_'+key):
+        st.session_state['_atlas_zoom_city']=False
+        st.rerun()
+    st.caption('Bir ile tıklandığında il sınırlarına yakınlaşılır. Türkiye görünümüne düğmeyle dönebilirsin.')
 
 
 def _il_secimi_degisti(widget_key: str):
     st.session_state['secilen_il'] = st.session_state[widget_key]
+    st.session_state['_atlas_zoom_city'] = True
 
 
 def il_secimi(illist: list[str], key: str, label: str = 'Şehir seç'):
@@ -291,7 +297,10 @@ def yasam_ticaret_sayfasi(mode:str):
     if mode=='ticaret':
         filtre, sektor_kutusu, ilkutusu=st.columns([1.13,1.14,1.0],gap='small')
     else:
-        filtre, ilkutusu=st.columns([1.25,1],gap='small')
+        filtre, tercih_kutusu, ilkutusu=st.columns([1.13,1.14,1.0],gap='small')
+        with tercih_kutusu:
+            pref=st.selectbox('Yaşam tercihi',['Dengeli','Daha sakin','Daha hareketli'],
+                              key='v34_preference',filter_mode=None)
     with filtre:
         layer=st.selectbox('Harita göstergesi',options,key=mode+'_layer',filter_mode=None)
     if mode=='ticaret':
@@ -302,8 +311,10 @@ def yasam_ticaret_sayfasi(mode:str):
         sector='Yeme-içme'
     with ilkutusu:
         city=il_secimi(sorted(province.İl.tolist()),mode,label='Şehir ara / seç')
-    ortak_harita(geo,province,layer,layer,mode,
-                 il_degerlerini_yaz=(mode=='ticaret' and layer in ('Sektörel fırsat puanı', 'İlçe sayısı')))
+    map_area, place_panel=st.columns([2.1,1],gap='medium')
+    with map_area:
+        ortak_harita(geo,province,layer,layer,mode,
+                     il_degerlerini_yaz=(mode=='ticaret' and layer in ('Sektörel fırsat puanı', 'İlçe sayısı')))
     if mode=='ticaret' and layer=='Sektörel fırsat puanı':
         st.caption(f'Harita sektörü: **{sector}** · Her ilin ulusal ölçekte en yüksek puanlı üç ilçesinin ortalaması.')
     city=st.session_state.get('secilen_il',city)
@@ -318,24 +329,24 @@ def yasam_ticaret_sayfasi(mode:str):
            + (f'<span>{int(local.osm_ulasim.sum())} ulaşım kaydı</span>'
               if mode=='ticaret' and status.get('osm_aktif') else '')
            + '</div>')
-    if mode=='yasam':
-        st.markdown(facts,unsafe_allow_html=True)
-    controls,preview=st.columns([1,1.35],gap='large')
-    with controls:
-        if mode=='ticaret':
-            # Daha önce bu sütunda bulunan sektör filtresi yukarıya taşındı.
-            # Var olan il özetini buraya alarak boş alan bırakmıyoruz.
-            st.markdown(facts,unsafe_allow_html=True)
-            pref='Dengeli'
-        else:
-            with st.container(key='yasam_tercih_grubu'):
-                pref=st.radio('Yaşam tercihi',['Dengeli','Daha sakin','Daha hareketli'],
-                              horizontal=False,key='v34_preference')
+    if mode=='ticaret':
+        pref='Dengeli'
     local_rank,local_meta=sirala_ilceler(df,mode,'İl içi',city,sector,pref)
-    with preview:
-        if not local_rank.empty:
-            with st.container(border=True):
+    with place_panel:
+        with st.container(border=True):
+            st.markdown('### 📍 '+city)
+            st.markdown(facts,unsafe_allow_html=True)
+            if not local_rank.empty:
                 aciklama_alani(local_rank,local_meta)
+            st.markdown('**İlk 10 ilçe**')
+            if not local_rank.empty:
+                name_col='ilce' if 'ilce' in local_rank.columns else None
+                score_col=local_meta.get('puan_sutunu') if local_meta.get('puan_sutunu') in local_rank.columns else None
+                if name_col:
+                    columns=[name_col]+([score_col] if score_col else [])
+                    st.dataframe(local_rank[columns].head(10),hide_index=True,use_container_width=True)
+                else:
+                    st.dataframe(local_rank.head(10),hide_index=True,use_container_width=True)
     siralama_alani(df,mode,city,sector,pref)
     if mode=='ticaret':
         if status.get('osm_aktif'):

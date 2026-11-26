@@ -17,7 +17,7 @@ _SCROLL_NAV = r"""
   button.setAttribute('aria-label', 'Sayfanın altına kaydır');
   button.setAttribute('title', 'Aşağı kaydır');
   button.style.cssText = [
-    'position:fixed', 'bottom:max(22px, env(safe-area-inset-bottom))',
+    'position:fixed', 'bottom:max(88px, env(safe-area-inset-bottom))',
     'right:max(22px, env(safe-area-inset-right))', 'z-index:99999',
     'width:52px', 'height:52px', 'display:flex',
     'align-items:center', 'justify-content:center',

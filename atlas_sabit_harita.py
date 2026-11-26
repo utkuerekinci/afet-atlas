@@ -72,7 +72,7 @@ def _value_string(value: float | int | None) -> str:
     return f'{float(value):,.1f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 
-def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str, *, il_degerlerini_yaz: bool = False) -> folium.Map:
+def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str, *, il_degerlerini_yaz: bool = False, yakinlastir: bool = True) -> folium.Map:
     """Her il için gerçek geometrinin tüm yüzeyini tıklanabilir yapar."""
     if not {'İl', deger}.issubset(tablo.columns):
         raise ValueError('Harita için İl ve gösterge sütunu gerekiyor.')
@@ -167,6 +167,11 @@ def hazirla_harita(tablo: pd.DataFrame, deger: str, etiket: str, secili: str, *,
                 ),
                 interactive=False,
             ).add_to(m)
-    # Görüntünün yalnızca ilk açılıştaki kadrajını ayarlar; kullanıcı hareket ettiremez.
-    m.fit_bounds([[35.6, 25.4], [42.4, 45.3]], padding=(8, 8))
+    # Seçilmiş ilin coğrafi sınırlarına odaklan, ülke görünümüne dönülebilir.
+    if yakinlastir and secili in names and secili != 'Türkiye geneli':
+        province_geom=next(x['geometry'] for x in feats if x['properties']['il']==secili)
+        minx,miny,maxx,maxy=shape(province_geom).bounds
+        m.fit_bounds([[miny,minx],[maxy,maxx]],padding=(34,34),max_zoom=9)
+    else:
+        m.fit_bounds([[35.6,25.4],[42.4,45.3]],padding=(8,8))
     return m

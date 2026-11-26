@@ -257,7 +257,7 @@ button[data-testid="stSidebarCollapseButton"]::after {
 .orbit-node.disaster {bottom:36px;left:-4px;color:#d0d6ff;background:#283954;border:1px solid #5c709e;}
 
 /* Mevcut sade v4.5 kahraman bölümünde, metinle yörüngeyi dengeli yerleştir. */
-.hero-return {display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:258px;}
+.hero-return {display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:125px;}
 .hero-return-copy {flex:1 1 0;min-width:0;}
 .hero-return .atlas-orbit {flex:0 0 250px;margin:0 4px 0 12px;}
 @media(max-width:1020px) {
@@ -429,8 +429,32 @@ def github_kod_deposu_baglantisi() -> str:
 
 
 
+
+# Tüm kullanıcılar için sabit koyu tema (istemci sistem temasından bağımsız).
+st.markdown("""<style>
+:root,html,body,.stApp,[data-testid="stAppViewContainer"]{color-scheme:dark!important;
+ --background-color:#080f1d;--secondary-background-color:#111e31;
+ --text-color:#dce6f3;--primary-color:#65e6d5}
+.stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"]{background-color:#080f1d!important;color:#dce6f3!important}
+[data-testid="stHeader"]{background:#080f1d!important}
+.atlas-brand{font:700 25px 'Space Grotesk',sans-serif;color:#f0f8ff;letter-spacing:-.035em;margin:0 0 12px}
+.atlas-brand b{color:#71e5da}.atlas-brand-dot{color:#71e5da}
+.atlas-brand small{font:500 10px 'DM Sans',sans-serif;letter-spacing:.15em;color:#89a5bc;margin-left:14px}
+.st-key-atlas_desktop_nav{background:#101d30;border:1px solid #273b51;border-radius:15px;padding:6px 8px 0;margin-bottom:20px}
+.st-key-atlas_desktop_nav button{min-height:40px!important;padding:.3rem .25rem!important;font-size:.75rem!important;white-space:nowrap!important;border-radius:9px!important}
+@media(min-width:901px){
+ [data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"],[data-testid="collapsedControl"]{display:none!important}
+ [data-testid="stMain"] .block-container{padding-top:1.5rem!important}
+}
+@media(max-width:900px){
+ .st-key-atlas_desktop_nav{display:none!important}
+ .atlas-brand{padding-left:36px;font-size:21px}.atlas-brand small{display:block;margin:3px 0 0;font-size:9px}
+ [data-testid="stMain"] .block-container{padding-left:1rem!important;padding-right:1rem!important}
+}
+</style>""",unsafe_allow_html=True)
+
 # ---------- v4.3: yerleşik hamburger ile açılan menü + katlanabilir analizler ----------
-MODULES=['Genel Bakış','Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel','Siz Sorun','Yardım','Veri ve Yöntem','Yönetici Girişi']
+MODULES=['Genel Bakış','Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel','Siz Sorun','Yardım','Veri ve Yöntem','Hakkımızda','Yönetici Girişi']
 if 'secilen_il' not in st.session_state:
     st.session_state['secilen_il']='Ankara'
 if st.session_state.get('v34_bolum') not in MODULES:
@@ -441,6 +465,21 @@ module=st.session_state['v34_bolum']
 def git_modul(target: str) -> None:
     st.session_state['v34_bolum']=target
     st.rerun()
+
+
+
+# Masaüstünde yatay navigasyon; küçük ekranda yerleşik hamburger menü.
+st.markdown('<div class="atlas-brand"><span class="atlas-brand-dot">◉</span> AFET <b>ATLAS</b><small> TÜRKİYE BÖLGESEL ANALİZ PLATFORMU</small></div>', unsafe_allow_html=True)
+with st.container(key='atlas_desktop_nav'):
+    nav_items = ['Genel Bakış','Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel',
+                 'Siz Sorun','Yardım','Veri ve Yöntem','Hakkımızda']
+    nav_cols=st.columns([1.05,1.1,1.18,1.35,.83,.75,1.28,.96],gap='small')
+    for index, target in enumerate(nav_items):
+        with nav_cols[index]:
+            if st.button(target,key='top_nav_'+str(index),
+                         type='primary' if module==target else 'secondary',
+                         use_container_width=True):
+                git_modul(target)
 
 
 with st.sidebar:
@@ -461,6 +500,8 @@ with st.sidebar:
                      type='primary' if module==target else 'secondary',
                      use_container_width=True):
             git_modul(target)
+    if st.button('ⓘ  Hakkımızda',key='nav_about',use_container_width=True):
+        git_modul('Hakkımızda')
     st.caption('Seçili il: '+st.session_state.get('secilen_il','Ankara'))
     # Afet türü ve deprem filtreleri v4.5'teki gibi haritanın yakınında kalır.
 
@@ -616,13 +657,6 @@ if module=='Genel Bakış':
         '<div class="orbit-node trade">TİCARET</div>'
         '<div class="orbit-node disaster">AFET</div>'
         '</div></section>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="metrics">'
-        + metric('İl','81','Türkiye genelinde','#65e6d5')
-        + metric('İlçe','973','İlçe karşılaştırmaları','#75afeb')
-        + metric('Afet türü','7','İl düzeyi afet katmanları','#ef8b7a')
-        + metric('Ticari sektör','4','Sektörel karşılaştırmalar','#f1c27e')
-        + '</div>', unsafe_allow_html=True)
     yardim_ipucu('Genel Bakış')
     topic=st.radio('Keşif alanı',OVERVIEW_TOPICS,horizontal=True,key='home_v40_topic')
     try:
@@ -647,38 +681,31 @@ if module=='Genel Bakış':
             with city_column:
                 city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir ara / seç')
             layer_data,layer_col,layer_text=layer_frame(provinces,topic,layer)
-            ortak_harita(geo,layer_data,layer_col,layer_text,'home_v40')
-            # Harita tıklaması rerun üretir; dolayısıyla gösterilen şehir her zaman günceldir.
+            map_column, info_column=st.columns([2.2,1],gap='medium')
+            with map_column:
+                ortak_harita(geo,layer_data,layer_col,layer_text,'home_v40')
             city=st.session_state.get('secilen_il',city)
             details=city_summary(districts,provinces,city,topic,layer,
                                  safety_snapshot=layer_data if topic=='Doğal afetler' else None)
             population_text=f'{details["nufus"]:,}'.replace(',','.')
             words=str(details['text']).split('. ')
             short='.'.join([]) if not words else '. '.join(words[:2]).rstrip('.')+'.'
-            st.markdown(
-                '<div class="compact-summary">'
-                f'<h3>{escape(city)}</h3>'
-                f'<p><strong>{population_text}</strong> nüfus · <strong>{details["ilce"]}</strong> ilçe '
-                f'· {escape(str(details["key_label"]))}: <strong>{escape(str(details["key_value"]))}</strong></p>'
-                f'<p>{escape(short)}</p></div>',unsafe_allow_html=True,
-            )
-            if st.button('Ayrıntıya Git →',type='primary',key='home_v43_details',use_container_width=True):
-                git_modul(TOPIC_DESTINATIONS[topic])
+            with info_column:
+                with st.container(border=True):
+                    st.markdown(f'### 📍 {escape(city)}')
+                    st.caption(f'{population_text} nüfus · {details["ilce"]} ilçe')
+                    st.write(short)
+                    st.caption(f'{details["key_label"]}: {details["key_value"]}')
+                    st.markdown('**Bu ili analiz et**')
+                    for idx,target in enumerate(('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
+                        if st.button(target+' →',key='home_city_nav_'+str(idx),use_container_width=True):
+                            git_modul(target)
             gemini_yorum_butonu(il_baglam(districts,provinces,city,topic,layer,details),
                                 key='genel_bakis_'+topic.replace(' ','_'))
     except Exception:
         import logging
         logging.getLogger(__name__).exception('Genel Bakış haritası oluşturulamadı')
         st.caption('Harita verileri yüklenemedi. Sayfayı yeniden açmayı dene.')
-    st.markdown('### Analiz alanları')
-    a,b,c=st.columns(3)
-    for col,title,desc,target in [(a,'Afet Analizi','7 afet türü, il haritaları ve karşılaştırmalar','Afet Analizi'),
-                                  (b,'Yaşam Kalitesi','Türkiye ve il içi ilçe sıralamaları','Yaşam Kalitesi'),
-                                  (c,'Ticari Potansiyel','Sektörel fırsat, işletme ve ulaşım katmanları','Ticari Potansiyel')]:
-        with col:
-            st.markdown(f'<div class="atlas-action"><strong>{escape(title)}</strong><p>{escape(desc)}</p></div>',unsafe_allow_html=True)
-            if st.button(title+' bölümüne git',key='open_'+target,use_container_width=True):
-                git_modul(target)
 
 elif module=='Yaşam Kalitesi':
     heading('TÜRKİYE GENELİ / İL İÇİ','Yaşam Kalitesi','Nüfus, yoğunluk ve varsa SEGE ile yaşam tercihine uygunluk analizlerini karşılaştır.')
@@ -772,12 +799,29 @@ elif module=='Yönetici Girişi':
     from atlas_yonetim_ui import admin_page
     admin_page(_atlas_data_settings)
 
+elif module=='Hakkımızda':
+    heading('PROJE HAKKINDA', 'Hakkımızda',
+            'Afet Atlas, Türkiye için veriye dayalı bölgesel karşılaştırma ve keşif platformudur.')
+    a,b,c,d=st.columns(4)
+    for slot,value,label in [(a,'81','İl'),(b,'973','İlçe'),(c,'7','Afet türü'),(d,'4','Ticari sektör')]:
+        with slot: st.metric(label,value)
+    st.markdown("""### Afet Atlas ne sunuyor?
+    Afet Analizi il düzeyinde tarihsel faaliyet ve kaynaklı afet göstergelerini; Yaşam Kalitesi
+    ilçe düzeyinde nüfus, sosyoekonomik göstergeleri ve tercihleri; Ticari Potansiyel ise
+    sektörlere göre karşılaştırmalı ön analizleri sunar. **Siz Sorun** bölümünden
+    yapay zekâ destekli analizlere ulaşılabilir.
+
+    **Önemli:** Afet skorları bilimsel güvenlik olasılığı değildir. Ticari puanlar
+    yatırım garantisi veya gerçek müşteri talebi tahmini olarak yorumlanmamalıdır.
+    Kaynaklar, ağırlıklar ve veri sınırlılıkları Veri ve Yöntem bölümünde açıklanır.
+    """)
+    st.link_button('GitHub kaynak kodu','https://github.com/utkuerekinci/afet-atlas')
+
 elif module=='Yardım':
     heading('KULLANIM REHBERİ','Afet Atlas nasıl kullanılır?',
             'Birkaç adımda haritayı keşfet, sonuçları karşılaştır ve sorularını yanıtla.')
     st.markdown('#### Başlamak için')
-    st.write('Sol üstteki menü simgesine tıklayarak sayfaları açabilirsin. '
-             'Analizler başlığını genişletip ilgilendiğin alanı seç.')
+    st.write('Masaüstünde üst menüyü; mobilde sol üstteki menü simgesini kullanarak bölümleri açabilirsin.')
     steps=[
         ('1 · Haritayı keşfet','Genel Bakış sayfasında Yaşam, Ticaret veya Afet seç. Yaşam göstergelerini değiştirebilir, Ticaret haritasında dört sektörün ortalama puanını ve Afet bölümünde illerin güvenlik skorlarını karşılaştırabilirsin. Bir ilin renkli alanına tıkla; harita sürüklenmez.'),
         ('2 · İl ayrıntılarına geç','Kısa il özetinin altındaki Ayrıntıya Git düğmesine bas. Aynı il ilgili analiz sayfasında korunur.'),

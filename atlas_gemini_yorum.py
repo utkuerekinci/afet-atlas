@@ -247,6 +247,56 @@ def gemini_yorum_butonu(baglam: dict, key: str, button_label: str | None = None)
         st.write(stored['answer'])
 
 
+def genel_bakis_detay_kontrolu(baglam: dict, key: str = 'genel_bakis') -> str | None:
+    """Genel Bakış il panelinde kısa ve Gemini açıklaması arasında aç/kapat.
+
+    Butonu yalnızca bu fonksiyon çizer; dönen metin çağıran panelin kendi
+    açıklama yuvasında gösterilir. Kullanıcı il/filtre değiştirince eski metin
+    başka ile taşınmaz. Gemini başarısız olursa hazır Python açıklaması kalır.
+    """
+    import streamlit as st
+    payload_json = json.dumps(_native(baglam), ensure_ascii=False, sort_keys=True)
+    digest = hashlib.sha256(payload_json.encode('utf-8')).hexdigest()
+    state_key = 'home_detail_state_' + key
+    stored = st.session_state.get(state_key, {})
+    expanded = stored.get('digest') == digest and bool(stored.get('expanded'))
+    label = '✕ Kapat' if expanded else 'Daha Fazla Bilgi'
+    if st.button(label, key='home_detail_toggle_' + key,
+                 type='primary' if not expanded else 'secondary',
+                 use_container_width=True):
+        if expanded:
+            st.session_state[state_key] = {'digest': digest, 'expanded': False,
+                                           'answer': stored.get('answer')}
+            return None
+        if stored.get('digest') == digest and stored.get('answer'):
+            st.session_state[state_key] = {**stored, 'expanded': True}
+            return stored['answer']
+        secret = api_anahtari()
+        if not secret:
+            st.info('Ayrıntılı yorum için GOOGLE_API_KEY değeri Streamlit Secrets içine eklenmeli.')
+            return None
+        model = (os.environ.get('AFET_ATLAS_MODEL') or DEFAULT_MODEL).strip()
+        try:
+            configured = st.secrets.get('AFET_ATLAS_MODEL')
+            if configured:
+                model = str(configured).strip()
+        except Exception:
+            pass
+        with st.spinner('Seçilen il için daha fazla bilgi hazırlanıyor...'):
+            try:
+                answer = _cached_yorum(payload_json, model, _api_key=secret)
+            except Exception as exc:
+                message, diagnostic = hata_mesaji(exc, secret)
+                st.error(message)
+                with st.expander('Teknik hata ayrıntısı'):
+                    st.code(diagnostic, language='text')
+                return None
+        st.session_state[state_key] = {'digest': digest, 'expanded': True,
+                                       'answer': answer}
+        return answer
+    return stored.get('answer') if expanded else None
+
+
 # Girdiler evrensel bölge verisidir; kullanıcıya özel veri veya API anahtarı önbelleğe alınmaz.
 try:
     import streamlit as _st

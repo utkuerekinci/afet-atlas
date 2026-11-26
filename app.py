@@ -39,7 +39,7 @@ from veri import depremleri_getir, il_sinirlarini_getir
 from atlas_ui import yasam_ticaret_sayfasi, veri_yukle, il_sinirlari, ortak_harita, il_secimi, ilce_arama, il_paneli_gecisleri
 from atlas_afet_ui import diger_afet_sayfasi
 from atlas_analiz import illere_ozet
-from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
+from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, genel_bakis_detay_kontrolu, api_anahtari
 from genel_bakis import (OVERVIEW_TOPICS, TOPIC_DESCRIPTIONS, TOPIC_DESTINATIONS,
                          prepare_provinces, available_layers, layer_frame, city_summary)
 from atlas_tema import ortak_kontrol_css
@@ -726,16 +726,17 @@ if module=='Genel Bakış':
                 with st.container(border=True):
                     st.markdown(f'### 📍 {escape(city)}')
                     st.markdown(f'<div class="quick-facts"><span>{population_text} nüfus</span><span>{details["ilce"]} ilçe</span></div>',unsafe_allow_html=True)
-                    st.write(short)
-                    fact_col, learn_col = st.columns([1.35, 1], gap='small', vertical_alignment='center')
+                    fact_col, learn_col = st.columns([1.1, 1.25], gap='small', vertical_alignment='center')
                     with fact_col:
                         st.markdown(f'<div class="quick-facts"><span>{escape(str(details["key_label"]))}: {escape(str(details["key_value"]))}</span></div>',unsafe_allow_html=True)
                     with learn_col:
-                        gemini_yorum_butonu(
+                        extra_text = genel_bakis_detay_kontrolu(
                             il_baglam(districts,provinces,city,topic,layer,details),
-                            key='genel_bakis_'+topic.replace(' ','_'),
-                            button_label='Daha Fazla Bilgi',
+                            key='home_city',
                         )
+                    # Ayrıntı, kısa açıklamanın yerini alır; yanına veya altına
+                    # ikinci kez yazılmaz. Kapatınca Python açıklaması geri gelir.
+                    st.write(extra_text if extra_text else short)
                     st.markdown('**Bu ili analiz et**')
                     for idx,target in enumerate(('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
                         if st.button(target+' →',key='home_city_nav_'+str(idx),use_container_width=True, type='primary'):

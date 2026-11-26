@@ -259,6 +259,30 @@ ORTAK_KONTROL_CSS = r"""<style>
 .stApp [data-testid="stMain"] [data-testid="stBaseButton-primary"] p {
  color:#fff!important;font-weight:750!important;font-size:15px!important;
 }
+/* Genel Bakış'taki açılır ayrıntı butonu dar sütunda yatay kalsın. */
+.stApp .st-key-home_detail_toggle_home_city button,
+.stApp .st-key-home_detail_toggle_home_city [data-testid^="stBaseButton"] {
+  min-width:0!important;
+  width:100%!important;
+  padding:7px 8px!important;
+  min-height:40px!important;
+  white-space:nowrap!important;
+  background:#f04e66!important;
+  border:1px solid #ff9baa!important;
+  color:white!important;
+}
+.stApp .st-key-home_detail_toggle_home_city button p,
+.stApp .st-key-home_detail_toggle_home_city button span {
+  white-space:nowrap!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  font-size:13px!important;
+  line-height:1.15!important;
+  color:white!important;
+}
+.stApp .st-key-home_detail_toggle_home_city button:hover {
+  background:#ff647a!important;
+}
 /* 4. Yasam tercihi: Dengeli / Daha sakin / Daha hareketli daha buyuk ve tiklanabilir. */
 .stApp .st-key-yasam_tercih_grubu [data-testid="stRadio"] [role="radiogroup"] {
  gap:11px!important;

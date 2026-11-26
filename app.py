@@ -36,7 +36,7 @@ from atlas_deprem_kayitlari import secilen_il_kayitlari, hareketliligi_yuksek_be
 from harita_cizimi import turkiye_haritasi
 from afet_atlas_adk.calistir import ajana_sor_ayrintili
 from veri import depremleri_getir, il_sinirlarini_getir
-from atlas_ui import yasam_ticaret_sayfasi, veri_yukle, il_sinirlari, ortak_harita, il_secimi, ilce_arama
+from atlas_ui import yasam_ticaret_sayfasi, veri_yukle, il_sinirlari, ortak_harita, il_secimi, ilce_arama, il_paneli_gecisleri
 from atlas_afet_ui import diger_afet_sayfasi
 from atlas_analiz import illere_ozet
 from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
@@ -647,6 +647,7 @@ def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
             'ulke_karsilastirma':display.sort_values('Toplam puan',ascending=False).head(5).to_dict('records'),
             'not':'Bu puan tarihsel deprem hareketliliğidir; güvenlik olasılığı değildir.',
         },key='deprem_'+selected)
+        il_paneli_gecisleri('Afet Analizi',key='deprem')
     if not overview:
         t1,t2=st.tabs(['İl sıralaması','Hareketliliği en yüksek 5 il'])
         with t1:
@@ -801,20 +802,97 @@ elif module=='Yönetici Girişi':
     admin_page(_atlas_data_settings)
 
 elif module=='Hakkımızda':
-    a,b,c,d=st.columns(4)
-    for slot,value,label in [(a,'81','İl'),(b,'973','İlçe'),(c,'7','Afet türü'),(d,'4','Ticari sektör')]:
-        with slot: st.metric(label,value)
-    st.markdown("""### Afet Atlas ne sunuyor?
-    Afet Analizi il düzeyinde tarihsel faaliyet ve kaynaklı afet göstergelerini; Yaşam Kalitesi
-    ilçe düzeyinde nüfus, sosyoekonomik göstergeleri ve tercihleri; Ticari Potansiyel ise
-    sektörlere göre karşılaştırmalı ön analizleri sunar. **Siz Sorun** bölümünden
-    yapay zekâ destekli analizlere ulaşılabilir.
-
-    **Önemli:** Afet skorları bilimsel güvenlik olasılığı değildir. Ticari puanlar
-    yatırım garantisi veya gerçek müşteri talebi tahmini olarak yorumlanmamalıdır.
-    Kaynaklar, ağırlıklar ve veri sınırlılıkları Veri ve Yöntem bölümünde açıklanır.
-    """)
-    st.link_button('GitHub kaynak kodu','https://github.com/utkuerekinci/afet-atlas')
+    st.markdown("""
+    <style>
+    .atlas-about {color:#dbe8f4;}
+    .atlas-about .about-intro {
+        background:linear-gradient(115deg,#15243a 0%,#102133 70%,#182638 100%);
+        border:1px solid #34475b;border-radius:22px;padding:24px 28px 23px;
+        margin:2px 0 17px;
+    }
+    .atlas-about .about-eyebrow {color:#ff8192;font-size:11px;letter-spacing:.17em;
+        font-weight:800;text-transform:uppercase;margin:0 0 9px;}
+    .atlas-about .about-title {font-size:clamp(23px,3vw,34px);font-weight:800;
+        line-height:1.16;letter-spacing:-.045em;color:#f5f9ff;margin:0 0 10px;}
+    .atlas-about .about-intro p {color:#bacbda;line-height:1.65;max-width:920px;
+        font-size:14px;margin:0;}
+    .atlas-about .about-stats {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+        gap:12px;margin:0 0 20px;}
+    .atlas-about .about-stat {background:linear-gradient(145deg,#271a2b,#171e31 80%);
+        border:1px solid #853d53;border-radius:17px;padding:17px 19px;
+        box-shadow:inset 3px 0 0 #f04e66;min-height:109px;}
+    .atlas-about .stat-number {display:block;color:#ff647a;font:800 clamp(29px,4vw,43px)/1.05 'Space Grotesk',sans-serif;
+        letter-spacing:-.05em;margin-bottom:8px;}
+    .atlas-about .stat-label {font-size:13px;font-weight:750;color:#f6e2e8;}
+    .atlas-about .about-section-title {color:#eef6ff;font-size:17px;
+        font-weight:800;margin:7px 0 13px;letter-spacing:-.025em;}
+    .atlas-about .about-modules {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px;}
+    .atlas-about .about-module {background:#101e30;border:1px solid #304258;
+        border-radius:16px;padding:17px 18px;min-height:154px;}
+    .atlas-about .about-module .index {font-size:11px;font-weight:800;
+        color:#ff8292;letter-spacing:.13em;margin-bottom:11px;}
+    .atlas-about .about-module h4 {font-size:16px;font-weight:800;color:#f0f7ff;margin:0 0 9px;}
+    .atlas-about .about-module p {font-size:13px;line-height:1.58;color:#b7cad9;margin:0;}
+    .atlas-about .about-footer {display:grid;grid-template-columns:1fr 1fr;
+        gap:12px;margin:4px 0 12px;}
+    .atlas-about .about-small {background:#101e30;border:1px solid #304258;
+        border-radius:15px;padding:17px 19px;}
+    .atlas-about .about-small strong {display:block;color:#f0f7ff;font-size:14px;margin-bottom:7px;}
+    .atlas-about .about-small p {color:#b7cad9;font-size:13px;line-height:1.6;margin:0;}
+    .atlas-about .about-warning {background:#261b2b;border-color:#95465b;}
+    .atlas-about .about-warning strong {color:#ff9aab;}
+    @media(max-width:850px){
+        .atlas-about .about-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .atlas-about .about-modules{grid-template-columns:1fr;}
+        .atlas-about .about-footer{grid-template-columns:1fr;}
+    }
+    @media(max-width:500px){
+        .atlas-about .about-intro{padding:20px 18px;}
+        .atlas-about .about-stat{padding:14px;min-height:94px;}
+    }
+    </style>
+    <div class="atlas-about">
+      <div class="about-intro">
+        <div class="about-eyebrow">Afet Atlas · Proje hakkında</div>
+        <div class="about-title">Türkiye'yi verilerle keşfet.</div>
+        <p>Afet Atlas; doğal afet göstergelerini, yaşam koşullarını ve ticari potansiyeli
+        Türkiye haritası üzerinde bir araya getiren karşılaştırmalı analiz platformudur.
+        İllerden ilçelere uzanan verileri inceleyebilir, farklı bölgeleri karşılaştırabilir
+        ve yapay zekâ destekli açıklamalardan yararlanabilirsin.</p>
+      </div>
+      <div class="about-stats">
+        <div class="about-stat"><span class="stat-number">81</span><span class="stat-label">İl</span></div>
+        <div class="about-stat"><span class="stat-number">973</span><span class="stat-label">İlçe</span></div>
+        <div class="about-stat"><span class="stat-number">7</span><span class="stat-label">Afet türü</span></div>
+        <div class="about-stat"><span class="stat-number">4</span><span class="stat-label">Ticari sektör</span></div>
+      </div>
+      <div class="about-section-title">Platformda neler var?</div>
+      <div class="about-modules">
+        <div class="about-module"><div class="index">01 / AFET</div>
+          <h4>Afet Analizi</h4>
+          <p>81 il için tarihsel deprem hareketliliği ve kaynaklı doğal afet göstergelerini
+          harita üzerinde incele.</p></div>
+        <div class="about-module"><div class="index">02 / YAŞAM</div>
+          <h4>Yaşam Kalitesi</h4>
+          <p>İlçe nüfusu, sosyoekonomik göstergeler ve yaşam tercihleri üzerinden
+          yerleşim bölgelerini karşılaştır.</p></div>
+        <div class="about-module"><div class="index">03 / TİCARET</div>
+          <h4>Ticari Potansiyel</h4>
+          <p>Dört sektörde ilçe bazlı fırsat puanlarını ve mevcut veri kapsamındaki
+          ticari göstergeleri keşfet.</p></div>
+      </div>
+      <div class="about-footer">
+        <div class="about-small"><strong>Yapay zekâ destekli keşif</strong>
+          <p>Siz Sorun bölümünden doğal dilde sorular sorabilir ve mevcut verilere
+          dayalı açıklamaları inceleyebilirsin.</p></div>
+        <div class="about-small about-warning"><strong>Verileri nasıl yorumlamalı?</strong>
+          <p>Afet skorları bilimsel güvenlik olasılığı, ticari puanlar ise yatırım
+          garantisi veya gerçek müşteri talebi tahmini değildir. Kaynaklar ve model
+          sınırlılıkları Veri ve Yöntem bölümünde açıklanır.</p></div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.link_button('↗ GitHub kaynak kodunu görüntüle','https://github.com/utkuerekinci/afet-atlas')
 
 elif module=='Yardım':
     st.markdown('#### Başlamak için')

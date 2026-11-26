@@ -91,6 +91,26 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
             st.rerun()
 
 
+
+
+def il_paneli_gecisleri(current_module: str, key: str) -> None:
+    """Seçili ili kaybetmeden il profilinden diğer analizlere hızlı geçiş.
+
+    Her hedefin anahtarında modül ve panel kimliği bulunduğundan
+    farklı ekranlardaki widget kimlikleri birbiriyle çakışmaz.
+    """
+    targets = ('Genel Bakış', 'Afet Analizi', 'Yaşam Kalitesi', 'Ticari Potansiyel')
+    available = [target for target in targets if target != current_module]
+    st.markdown('**Diğer analizlere geç**')
+    for index, target in enumerate(available):
+        if st.button(target + ' →', key=f'province_navigation_{key}_{index}',
+                     type='primary', use_container_width=True):
+            # secilen_il ve harita yakınlaştırma durumu korunur.
+            st.session_state['v34_bolum'] = target
+            st.session_state['_atlas_zoom_city'] = True
+            st.rerun()
+
+
 def _il_secimi_degisti(widget_key: str):
     st.session_state['secilen_il'] = st.session_state[widget_key]
     st.session_state['_atlas_zoom_city'] = True
@@ -383,6 +403,7 @@ def yasam_ticaret_sayfasi(mode:str):
             st.markdown(facts,unsafe_allow_html=True)
             if not local_rank.empty:
                 aciklama_alani(local_rank,local_meta)
+            il_paneli_gecisleri(name, key=mode)
     # Harita ve panel satırı tamamlandıktan hemen sonra tam genişlikte sıralama.
     siralama_alani(df,mode,city,sector,pref)
     if mode=='ticaret':

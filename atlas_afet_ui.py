@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 from atlas_afet_veri import get, AFETLER
-from atlas_ui import il_sinirlari, ortak_harita, il_secimi
+from atlas_ui import il_sinirlari, ortak_harita, il_secimi, il_paneli_gecisleri
 from atlas_il_yorumlari import yangin_il_yorumu, yangin_lider_yorumu
 from atlas_afet_veri import safe_fire
 from atlas_gemini_yorum import afet_baglam, gemini_yorum_butonu
@@ -67,6 +67,7 @@ def diger_afet_sayfasi(afet:str)->None:
           else:
               st.metric('2024 bölgesel yıllık yağış farkı',f'{row[col]:+.1f}%'.replace('.',','))
               st.caption(f'Coğrafi bölge: **{row["Bölge"]}**')
+          il_paneli_gecisleri('Afet Analizi',key='afet_'+afet.replace(' ','_').replace('/','_'))
     gemini_yorum_butonu(afet_baglam(afet,city,year,df,col,
                                        existing if record['tip']=='ikincil_sayisal' else ''),
                         key='afet_'+afet.replace(' ','_').replace('/','_'))

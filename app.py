@@ -452,6 +452,31 @@ st.markdown("""<style>
  .atlas-brand{padding-left:36px;font-size:21px}.atlas-brand small{display:block;margin:3px 0 0;font-size:9px}
  [data-testid="stMain"] .block-container{padding-left:1rem!important;padding-right:1rem!important}
 }
+
+/* Genel Bakış: dört combobox her genişlikte aynı yatay satırda kalır. */
+.stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] {
+ display:flex!important; flex-wrap:nowrap!important; align-items:flex-start!important;
+ gap:.55rem!important;
+}
+.stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+ flex:1 1 0!important; width:0!important; min-width:0!important;
+}
+.stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(1) {flex:1.08 1 0!important;}
+.stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) {flex:1.08 1 0!important;}
+.stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(3) {flex:.93 1 0!important;}
+.stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(4) {flex:1.11 1 0!important;}
+.stApp .st-key-home_filter_row [data-testid="stSelectbox"] {min-width:0!important;}
+.stApp .st-key-home_filter_row [data-testid="stSelectbox"] [role="group"] {min-width:0!important;}
+.stApp .st-key-home_filter_row [data-testid="stSelectbox"] label p {font-size:12px!important;}
+.stApp .st-key-home_filter_row [data-testid="stSelectbox"] input {font-size:13px!important;}
+@media(max-width:760px){
+ .stApp .st-key-home_filter_row {overflow-x:auto!important;}
+ .stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] {min-width:710px!important;}
+ .stApp .st-key-home_filter_row [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+  min-width:155px!important;flex:1 1 155px!important;width:auto!important;
+ }
+}
+
 /* Genel bakış açıklaması üst başlıkla birleşir; harita ilk ekranda görünür. */
 .atlas-brand{margin-bottom:5px!important;}
 .atlas-inline-intro {font-size:12.5px;line-height:1.45;color:#c7d9e8;
@@ -662,7 +687,6 @@ def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
 
 if module=='Genel Bakış':
     yardim_ipucu('Genel Bakış')
-    topic=st.radio('Keşif alanı',OVERVIEW_TOPICS,horizontal=True,key='home_v40_topic')
     try:
         with st.spinner('Türkiye atlası hazırlanıyor...'):
             raw, overview_status=veri_yukle()
@@ -670,22 +694,24 @@ if module=='Genel Bakış':
                 st.stop()
             geo=il_sinirlari()
             districts,provinces=prepare_provinces(raw,geo)
-        labels=available_layers(provinces,topic)
+        # Genel Bakış filtreleri tek satırda, soldan sağa aynı hizada kalır.
+        # Dar ekranlarda yatay kaydırılır; diğer ekranların sütunları etkilenmez.
+        with st.container(key='home_filter_row'):
+            topic_column,filter_column,city_column,district_column=st.columns([1.08,1.08,0.93,1.11],gap='small')
+            with topic_column:
+                topic=st.selectbox('Keşif alanı',OVERVIEW_TOPICS,key='home_v40_topic',filter_mode=None)
+            labels=available_layers(provinces,topic)
+            if labels:
+                with filter_column:
+                    layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic,
+                                       help='Haritada renklendirilecek veriyi seç.',filter_mode=None)
+                with city_column:
+                    city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir ara / seç')
+                with district_column:
+                    ilce_arama(districts,'home_v40',label='İlçe ile il bul')
         if not labels:
             st.caption('Bu keşif alanına ait harita verisi bulunamadı.')
         else:
-            filter_column,city_column,district_column=st.columns([1.15,0.95,1.15],gap='small')
-            with filter_column:
-                if topic in ('Doğal afetler', 'Ticari hareketlilik'):
-                    layer=labels[0]
-                    st.markdown('**Harita göstergesi:** '+layer)
-                else:
-                    layer=st.selectbox('Harita göstergesi',labels,key='home_v40_layer_'+topic,
-                                       help='Haritada renklendirilecek veriyi seç.',filter_mode=None)
-            with city_column:
-                city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir ara / seç')
-            with district_column:
-                ilce_arama(districts,'home_v40',label='İlçe ile il bul')
             layer_data,layer_col,layer_text=layer_frame(provinces,topic,layer)
             map_column, info_column=st.columns([2.2,1],gap='medium')
             with map_column:

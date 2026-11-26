@@ -16,6 +16,7 @@ ORTAK_KONTROL_CSS = r"""<style>
 /* Every filter is identified by its widget key, never the label or column index.
    st-key-il_select_ covers every city/location picker in all modules. */
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -29,6 +30,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v45_min_m,
  .st-key-v45_distance) :is([role="group"], .react-aria-Group),
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -52,6 +54,7 @@ ORTAK_KONTROL_CSS = r"""<style>
 }
 /* React Aria: input and chevron are children of StyledGroup. */
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -65,6 +68,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v45_min_m,
  .st-key-v45_distance) :is([role="group"], .react-aria-Group) input,
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -89,6 +93,7 @@ ORTAK_KONTROL_CSS = r"""<style>
   font-size: 15px !important;
 }
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -105,6 +110,7 @@ ORTAK_KONTROL_CSS = r"""<style>
   -webkit-text-fill-color: #dcecff !important;
 }
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -118,6 +124,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v45_min_m,
  .st-key-v45_distance) :is([role="group"], .react-aria-Group) button,
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -135,6 +142,7 @@ ORTAK_KONTROL_CSS = r"""<style>
   fill: currentColor !important;
 }
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -152,6 +160,7 @@ ORTAK_KONTROL_CSS = r"""<style>
 }
 /* Hover or focused state: same blue family. */
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -165,6 +174,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v45_min_m,
  .st-key-v45_distance) :is([role="group"], .react-aria-Group):is(:hover,[data-hovered]),
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,
@@ -178,6 +188,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v45_min_m,
  .st-key-v45_distance) :is([role="group"], .react-aria-Group):is(:focus-within,[data-focus-within]),
 .stApp :is([class*="st-key-home_v40_layer_"],
+ .st-key-home_v40_topic,
  .st-key-yasam_layer,
  .st-key-ticaret_layer,
  .st-key-v36_fire_metric,

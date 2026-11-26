@@ -190,10 +190,12 @@ def _bar(df: pd.DataFrame, score: str, n: int = 10):
         hoverlabel=dict(bgcolor='#173149',
                         font=dict(color='#f3fafb',size=12)),
     ))
+    fig.update_traces(width=0.66)
     fig.update_layout(
-        height=max(345, len(plot) * 35 + 80), margin=dict(l=4,r=9,t=10,b=5),
+        height=max(230, min(315, len(plot) * 25 + 55)),
+        margin=dict(l=3,r=6,t=5,b=3),
         paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#d5e7f2',size=11), dragmode=False, hovermode='closest',
+        font=dict(color='#d5e7f2',size=10), dragmode=False, hovermode='closest',
         xaxis=dict(range=[0,105],fixedrange=True,showticklabels=False,
                    showgrid=False,zeroline=False,title=None,showline=False),
         yaxis=dict(fixedrange=True,showgrid=False,title=None,automargin=True),
@@ -306,7 +308,7 @@ def siralama_alani(all_districts:pd.DataFrame,mode:str,city:str,sector:str,prefe
             score=meta['puan_sutunu']
             st.markdown(f"#### {scope} — ilk 10")
             st.caption(f"{len(rank)} ilçe · {meta['model']}")
-            l,r=st.columns([0.92,1.48],gap='medium')
+            l,r=st.columns([1,1.32],gap='small')
             with l:
                 show=['Sıra','il','ilce','nufus',score]
                 if 'sege_sira' in rank: show.insert(-1,'sege_sira')
@@ -315,7 +317,7 @@ def siralama_alani(all_districts:pd.DataFrame,mode:str,city:str,sector:str,prefe
                 st.dataframe(rank[show].head(10).rename(columns={
                     'il':'İl','ilce':'İlçe','nufus':'Nüfus (2025)',
                     'sege_sira':'SEGE Türkiye sırası'}),
-                    hide_index=True,use_container_width=True,height=385)
+                    hide_index=True,use_container_width=True,height=318)
             with r:
                 _bar(rank,score,min(10,len(rank)))
             # Üstteki sağ panel hem yaşam hem ticarette tek 'Neden Birinci?' yeridir.
@@ -385,27 +387,17 @@ def yasam_ticaret_sayfasi(mode:str):
         if mode=='ticaret' and layer=='Sektörel fırsat puanı':
             st.caption(f'Harita sektörü: **{sector}** · Her ilin ulusal ölçekte en yüksek puanlı üç ilçesinin ortalaması.')
     city=st.session_state.get('secilen_il',city)
-    row=province.set_index('İl').loc[city]
-    local=df[df.il==city]
-    biggest=local.loc[local.nufus.idxmax()]
-    facts=('<div class="quick-facts">'
-           f'<span>{city}</span>'
-           f'<span>{int(row["Nüfus (2025)"]):,} nüfus</span>'
-           f'<span>{int(row["İlçe sayısı"])} ilçe</span>'
-           f'<span>En kalabalık ilçe: {biggest.ilce}</span>'
-           + (f'<span>{int(local.osm_ulasim.sum())} ulaşım kaydı</span>'
-              if mode=='ticaret' and status.get('osm_aktif') else '')
-           + '</div>')
     local_rank,local_meta=sirala_ilceler(df,mode,'İl içi',city,sector,pref)
     with place_panel:
         with st.container(border=True):
             st.markdown('### 📍 '+city)
-            st.markdown(facts,unsafe_allow_html=True)
             if not local_rank.empty:
                 aciklama_alani(local_rank,local_meta)
             il_paneli_gecisleri(name, key=mode)
-    # Harita ve panel satırı tamamlandıktan hemen sonra tam genişlikte sıralama.
-    siralama_alani(df,mode,city,sector,pref)
+    # Sıralamalar yalnızca HARİTA sütununda yer alır. Sağdaki il kartının
+    # altına uzanmaz; harita genişliğiyle aynı sol hizaya sahiptir.
+    with map_area:
+        siralama_alani(df,mode,city,sector,pref)
     if mode=='ticaret':
         if status.get('osm_aktif'):
             with st.expander(f'İşletme ve ulaşım sayıları · {city}', expanded=False):

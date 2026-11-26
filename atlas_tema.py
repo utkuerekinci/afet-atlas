@@ -350,6 +350,16 @@ ORTAK_KONTROL_CSS = r"""<style>
  .stApp .st-key-map_reset_ticaret {transform:translate(7px,-635px)!important;}
 }
 
+
+/* İlçe combobox'ında arama yazılabilsin; diğer mavi filtreler değişmez. */
+.stApp [class*="st-key-district_search_"] :is([role="group"], .react-aria-Group) input,
+.stApp [class*="st-key-district_search_"] [data-baseweb="select"] input {
+  caret-color: #ffffff !important;
+  cursor: text !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
+
 </style>"""
 
 

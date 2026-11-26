@@ -155,6 +155,7 @@ def ilce_arama(df: pd.DataFrame, key: str, label: str = 'İlçe ile il bul'):
         st.session_state[widget_key] = placeholder
     return st.selectbox(
         label, options, key=widget_key,
+        filter_mode='contains',  # Hem yazıp filtrele, hem tüm ilçe listesini koru.
         on_change=_ilce_arama_degisti, args=(widget_key, lookup),
     )
 

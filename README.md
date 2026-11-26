@@ -12,7 +12,14 @@ Türkiye'nin 81 ilini ve 973 ilçesini; doğal afet göstergeleri, yaşam koşul
 
 </div>
 
-![Afet Atlas güncel arayüzünde yaşam ve nüfus katmanı](docs/screenshots/11-guncel-genel-bakis-yasam.webp)
+## İlk sürümden günümüze
+
+| Başlangıç — Deprem analizi prototipi | Güncel sürüm — Bölgesel analiz platformu |
+| :---: | :---: |
+| ![Afet Atlas'ın ilk deprem analizi prototipi: ilk filtreler ve henüz tamamlanmamış harita alanı](docs/screenshots/01-ilk-deprem-prototipi.webp) | ![Afet Atlas'ın güncel sürümünde 81 ili kapsayan etkileşimli Türkiye haritası](docs/screenshots/11-guncel-genel-bakis-yasam.webp) |
+
+İlk aşamada proje, USGS deprem kayıtlarını yıl, büyüklük ve il sınırına yakınlık filtreleriyle karşılaştıran tek ekranlı bir uygulamaydı. Güncel sürümde aynı çalışma; **afet göstergeleri, ilçe yaşam koşulları, sektörel ticari analiz, Google ADK / Gemini destekli açıklamalar ve yetkili veri yönetimi** içeren çok modüllü bir yapıya dönüştü. Aşağıdaki görseller bu gelişimin farklı aşamalarından alınmıştır.
+
 
 > **Kapsam notu:** Afet Atlas bir keşif ve karşılaştırma aracıdır. Ekranda yer alan güvenlik, yaşam tercihi ve ticari fırsat puanları uygulamanın veri kapsamı ve ağırlıklarına dayanan **göreli endekslerdir**. Gelecekteki afetlerin olasılığını, bir ilçedeki bireysel yaşam memnuniyetini veya bir yatırımın getirisini ölçmez.
 
@@ -30,6 +37,80 @@ Türkiye'nin 81 ilini ve 973 ilçesini; doğal afet göstergeleri, yaşam koşul
 | **Veri yönetimi** | Yetkili giriş, CSV/JSON doğrulaması, ayrı özel GitHub veri deposuna yayınlama ve sürüm geçmişi |
 
 Uygulama üç ana soruyu birlikte ele alır: **Bir ilde hangi göstergeler öne çıkıyor?** **İlçeler hangi tercihlere göre sıralanıyor?** **Bu sonuçların arkasında hangi veri ve model ağırlıkları var?** Genel Bakış sayfası bütünleşik bir giriş sunarken ayrıntılı bölümler her analizin filtrelerini ve gerekçelerini ayrı gösterir.
+
+## Geliştirme süreci — kronolojik ekran görüntüleri
+
+Bu bölümdeki ekran görüntüleri **projenin önceki sürümlerine aittir**; güncel uygulamanın ekranlarıyla karıştırılmamalıdır. Değişiklikler yalnızca sürüm adlarından değil, görsellerde görülen modüllerden ve proje dosyalarından hareketle açıklanmıştır. İlk prototipte harita alanı boş göründüğü için bu görüntü tamamlanmış bir haritanın kanıtı olarak sunulmamaktadır.
+
+### 1. İlk prototip — Deprem verilerini karşılaştırma
+
+Proje, **Türkiye Deprem Analizi** başlıklı tek sayfalık bir Streamlit uygulaması olarak başladı. Başlangıç/bitiş yılı, en düşük büyüklük ve il sınırına yakınlık kontrolleriyle USGS kayıtlarının il bazında karşılaştırılması amaçlandı. İlk görüntüde sayısal göstergeler ve sıralama mevcutken harita alanı henüz sonuç göstermemektedir.
+
+![İlk deprem prototipinde filtreler, sayısal özetler ve boş harita alanı](docs/screenshots/01-ilk-deprem-prototipi.webp)
+
+### 2. v2.6 — Deprem haritası ve ilk Google ADK arayüzü
+
+Deprem analizine il düzeyinde görsel harita ve sıralama eklendi. Ayrı bir **Siz Sorun** sekmesiyle Google ADK kullanarak deprem verilerine soru sorulabilen ilk asistan arayüzü oluşturuldu. Aşağıdaki asistan görseli bir **arayüz örneğidir**, başarılı bir API yanıtının kanıtı değildir.
+
+| Deprem hareketliliği haritası | Google ADK / Siz Sorun'un ilk hâli |
+| :---: | :---: |
+| ![v2.6 deprem hareketliliği haritası ve il sıralaması](docs/screenshots/02-v26-deprem-haritasi.webp) | ![v2.6 ilk Siz Sorun arayüzü](docs/screenshots/03-v26-siz-sorun.webp) |
+
+### 3. v3.0 — Çoklu afet yaklaşımının ilk taslağı
+
+İlk deprem odaklı yapı, **Çoklu Afet Atlası** ekranıyla genişletilmeye başlandı. Taslakta **sekiz** afet başlığı ve bunlara ilişkin farklı veri gereksinimleri gösteriliyordu. Bu aşamadaki başlık sayısı ve veri kapsamı, güncel sürümde kullanılan **yedi afet katmanıyla** aynı değildir.
+
+![v3.0 çoklu afet ekranında ilk afet kartları ve veri yükleme alanları](docs/screenshots/04-v30-coklu-afet.webp)
+
+### 4. v3.2 — İlçe düzeyinde Yaşam ve Ticaret
+
+Proje, yalnızca deprem kayıtlarını incelemekten çıkarak **ilçe nüfusu, sosyoekonomik gelişmişlik ve ticari ön değerlendirme** bileşenlerine genişledi. İlk Yaşam & Ticaret ekranında Türkiye'nin 81 ili ve 973 ilçesi için analiz çerçevesi ve nüfusa dayalı karşılaştırmalar yer alıyordu. Görselde SEGE eşleşmesinin henüz doğrulanmadığı açıkça belirtiliyor; bu tarihsel durum güncel veri kapsamını yansıtmaz.
+
+![v3.2 Yaşam ve Ticaret ekranında ilk ilçe analizleri](docs/screenshots/05-v32-yasam-ticaret.webp)
+
+### 5. v3.4–v3.5 — Ortak harita, ilçe sıralaması ve gerekçeli sonuçlar
+
+Farklı analiz alanları aynı Türkiye haritası ve ortak bölge seçimi etrafında toplanmaya başladı. Yaşam modülünde ilçe sıralamaları, tercih puanları ve **Neden Bu İlçe Birinci?** açıklaması geliştirildi. Böylece sıralamaların yalnızca puanını değil, modeldeki göstergeleri ve alternatif ilçelerle farklarını açıklayan bir yapı ortaya çıktı.
+
+| Ortak harita ve analiz alanları | Yaşam Kalitesi ve ilçe sıralaması |
+| :---: | :---: |
+| ![v3.5 ortak il haritası ve analiz yönlendirmeleri](docs/screenshots/06-v35-ortak-deprem-haritasi.webp) | ![v3.5 Yaşam Kalitesi haritası ve ilçe sıralaması](docs/screenshots/07-v35-yasam-ilce-siralamasi.webp) |
+
+![v3.5 Neden Bu İlçe Birinci açıklamasında puan ve gösterge karşılaştırmaları](docs/screenshots/08-v35-neden-ilce-birinci.webp)
+
+### 6. v3.6 — Orman yangını katmanının gösterimi
+
+Afet modülü deprem dışındaki kaynaklarla genişletildi. Orman yangını verileri için ayrı bir harita ve il düzeyi gösterge alanı oluşturuldu. Bu kayıtlar raporlardan ve ikincil tablolardan derlendiği için bugünkü README'de kaynak doğrulama sınırlılıkları ayrıca açıklanmaktadır.
+
+![v3.6 orman yangını katmanı ve seçilen il özeti](docs/screenshots/28-gelisim-orman-yangini-v36.webp)
+
+### 7. v3.8 — OSM işletme ve ulaşım göstergeleri
+
+Ticari Potansiyel modülüne **OpenStreetMap işletme ve ulaşım kayıtları** eklendi. İlçe bazlı tablolar, ticaret analizinin yalnızca nüfus ve sosyoekonomik göstergelerle sınırlı kalmamasını sağladı. OSM kayıtları resmî işletme envanteri veya müşteri trafiği ölçümü değildir.
+
+![v3.8 ticari değerlendirmede OSM işletme ve ulaşım kayıtları](docs/screenshots/29-gelisim-osm-ticaret-v38.webp)
+
+### 8. v4.0–v4.2 — Yenilenen Genel Bakış ve afet kaynaklarının sunumu
+
+Genel Bakış ekranı farklı keşif alanlarını tek sayfada sunan bir yapıya dönüştü. Doğal afetlerin harita üzerinde karşılaştırılması, seçilen il için açıklama üretilmesi ve afet veri kaynaklarının daha belirgin gösterilmesi bu aşamanın öne çıkan yönleridir. Sel/taşkın ekranı, rapor kapsamının il bazında yorumlanmasına ilişkin bir örnektir.
+
+| Genel Bakış: afet katmanı | Ticari analiz: OSM kayıtları |
+| :---: | :---: |
+| ![v4.2 Genel Bakış doğal afet katmanında harita ve seçili il](docs/screenshots/09-v42-afet-genel-bakis.webp) | ![v4.2 ticaret analizinde açıklama ve OSM tablosu](docs/screenshots/10-v42-osm-ticaret.webp) |
+
+![v4 döneminde sel ve taşkın verisi için il düzeyi değerlendirme ekranı](docs/screenshots/30-gelisim-sel-taskin-v4.webp)
+
+### 9. Sonraki geliştirmeler — güncel Afet Atlas
+
+İzleyen sürümlerde koyu temalı menü sistemi, yedi afet göstergesinden oluşan birleşik proje endeksi, ilçe karşılaştırmaları, ticari harita etiketleri, sınırlı Gemini hata telafisi, sağ alt kaydırma düğmesi ve kullanıcı adı/parola korumalı veri yönetimi geliştirildi. Yetkili yönetici girişi, son düzenlemede **Genel Bakış'ın altındaki küçük kilit simgesine** taşındı.
+
+| Güncel Ticari Potansiyel haritası | Güncel Yönetici Paneli |
+| :---: | :---: |
+| ![Güncel uygulamada sektörel fırsat puanlarıyla Türkiye haritası](docs/screenshots/19-guncel-ticari-firsat.webp) | ![Güncel uygulamada yetkili veri yükleme paneli](docs/screenshots/25-guncel-yonetici-veri-yukleme.webp) |
+
+Bu gelişim dizisi **eski sürümlerin çalışan arayüzleri ile güncel sürümü** birlikte gösterir. Güncel modüllerin ayrıntıları, veri kapsamları ve yöntem sınırları sonraki bölümlerde açıklanmaktadır.
+
+---
 
 ## Uygulama bölümleri
 
@@ -71,14 +152,7 @@ Deprem dışındaki altı katman aynı kapsamda **eşit ayrıntıya sahip değil
 
 Bir ilin raporda yer almaması, o ilde **sıfır afet yaşandığı** anlamına gelmez. Katmanlara göre eksik gözlemler ayrı değerlendirilir.
 
-<details>
-<summary><strong>Gelişimden örnek: orman yangını ve sel/taşkın katmanları</strong></summary>
-
-![Orman yangını katmanı önceki sürüm](docs/screenshots/28-gelisim-orman-yangini-v36.webp)
-
-![Sel ve taşkın katmanı önceki sürüm](docs/screenshots/30-gelisim-sel-taskin-v4.webp)
-
-</details>
+**Tarihsel karşılaştırma:** Orman yangını ve sel/taşkın ekranlarının önceki hâlleri, yukarıdaki kronolojik gelişim bölümünde görülebilir.
 
 ### 3. Yaşam Kalitesi: Tercihe göre ilçe karşılaştırması
 
@@ -274,74 +348,6 @@ python -m unittest discover -v
 ```
 
 Testler veri eşleştirme, puanlama, harita ve çeşitli uygulama bileşenlerini kapsayan birim kontroller içerir. Gerçek **Gemini yanıtı**, canlı harita tıklamaları ve GitHub özel depo yetkileri ayrıca çalışan ortamda doğrulanmalıdır.
-
----
-
-## Geliştirme süreci
-
-Afet Atlas, tek bir deprem karşılaştırma ekranından başlayıp çok kaynaklı bölgesel analiz platformuna dönüştü. Aşağıdaki kronoloji, proje dosyaları ve **gerçek sürüm ekran görüntüleri** üzerinden hazırlanmıştır; erken aşamadaki tamamlanmamış modüller güncel sistemin özellikleriymiş gibi değerlendirilmemelidir.
-
-| Aşama | Gelişme |
-| :--- | :--- |
-| **İlk prototip** | USGS deprem kayıtları, yıl/büyüklük/yakınlık filtreleri, ilk il karşılaştırması. İlk ekran görüntüsünde harita alanı henüz tamamlanmış görünmüyor. |
-| **v2.x** | Deprem haritasının ve il sıralamalarının geliştirilmesi; Google ADK ile ilk *Siz Sorun* ekranı. |
-| **v3.0** | Çoklu afet için ilk arayüz taslağı. Taslakta sekiz afet konusu yer alırken güncel modelde yedi başlık değerlendiriliyor. |
-| **v3.2** | İlçe bazında yaşam ve ticaret ön analizlerinin eklenmesi. |
-| **v3.4–v3.5** | Ortak Türkiye haritası, il/ilçe karşılaştırmaları ve gerekçeli sıralama açıklamaları. |
-| **v3.5.4–v3.8** | 973 ilçenin nüfus–SEGE eşleştirmesi, afet katmanları ve ilçe ölçeğinde OSM işletme/ulaşım verilerinin eklenmesi. |
-| **v4.0–v4.2** | Üç temalı Genel Bakış, yenilenen açıklamalar ve Gemini yorumlarının geliştirilmesi. |
-| **v4.3–v4.12** | Sayfa düzeni, Yardım, sabit il haritası, yedi afetli birleşik endeks ve yönetici paneli çalışmalarının olgunlaştırılması. |
-| **v4.13–v4.20.x** | Koyu tema, filtre davranışı, ticari harita değer etiketleri, geçici Gemini hata yönetimi, sağ alt kaydırma düğmesi ve alt bilgi kilidiyle yönetici girişinin son düzeni. |
-
-<details>
-<summary><strong>Gelişim aşamalarının ekran görüntülerini aç</strong></summary>
-
-#### İlk deprem prototipi
-
-![İlk deprem analiz prototipi](docs/screenshots/01-ilk-deprem-prototipi.webp)
-
-#### v2.6 — Deprem analizi ve ilk ADK asistanı
-
-![Gelişmiş deprem haritası v2.6](docs/screenshots/02-v26-deprem-haritasi.webp)
-
-![İlk Siz Sorun arayüzü](docs/screenshots/03-v26-siz-sorun.webp)
-
-#### v3.0–v3.2 — Çoklu afet ve ilçe modülleri
-
-![İlk çoklu afet tasarımı](docs/screenshots/04-v30-coklu-afet.webp)
-
-![İlk Yaşam ve Ticaret görünümü](docs/screenshots/05-v32-yasam-ticaret.webp)
-
-#### v3.5 — Ortak harita ve açıklanabilir sıralamalar
-
-![Ortak harita deprem katmanı](docs/screenshots/06-v35-ortak-deprem-haritasi.webp)
-
-![İlçe yaşam sıralaması](docs/screenshots/07-v35-yasam-ilce-siralamasi.webp)
-
-![İlk ayrıntılı neden birinci açıklaması](docs/screenshots/08-v35-neden-ilce-birinci.webp)
-
-#### v3.6–v3.8 — Veri katmanlarının genişlemesi
-
-![Orman yangını gösterimi](docs/screenshots/28-gelisim-orman-yangini-v36.webp)
-
-![OSM işletme ve ulaşım göstergeleri](docs/screenshots/29-gelisim-osm-ticaret-v38.webp)
-
-#### v4.2 — Gelişmiş Genel Bakış ve bölgesel açıklamalar
-
-![Genel Bakış afet haritası](docs/screenshots/09-v42-afet-genel-bakis.webp)
-
-![Ticari OSM görünümü](docs/screenshots/10-v42-osm-ticaret.webp)
-
-</details>
-
-<details>
-<summary><strong>Güncel arayüzden diğer ekran görüntülerini aç</strong></summary>
-
-![Genel Bakış seçilen ilin özeti ve analiz yönlendirmeleri](docs/screenshots/14-guncel-genel-bakis-alt.webp)
-
-![Genel Bakış kullanım ipucu ve harita](docs/screenshots/27-guncel-genel-bakis-yardim-ipuclari.webp)
-
-</details>
 
 ---
 

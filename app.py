@@ -713,17 +713,14 @@ if module=='Genel Bakış':
         st.caption('Harita verileri yüklenemedi. Sayfayı yeniden açmayı dene.')
 
 elif module=='Yaşam Kalitesi':
-    heading('TÜRKİYE GENELİ / İL İÇİ','Yaşam Kalitesi','Nüfus, yoğunluk ve varsa SEGE ile yaşam tercihine uygunluk analizlerini karşılaştır.')
     yardim_ipucu('Yaşam Kalitesi')
     yasam_ticaret_sayfasi('yasam')
 
 elif module=='Ticari Potansiyel':
-    heading('SEKTÖREL ANALİZ / İLÇELER','Ticari Potansiyel','İlçe nüfusu ve SEGE ile karşılaştır; doğrulanmış OSM verisi yüklendiğinde işletme ve ulaşım katmanlarını incele.')
     yardim_ipucu('Ticari Potansiyel')
     yasam_ticaret_sayfasi('ticaret')
 
 elif module=='Afet Analizi':
-    heading('DOĞAL AFET ANALİZİ','İl bazında afet göstergeleri','Yedi afet türüne ilişkin kaynaklı il haritaları, rapor bulguları ve karşılaştırmalar.')
     yardim_ipucu('Afet Analizi')
     disaster=st.selectbox(
         'Afet türü', ['Deprem','Orman yangını','Sel / taşkın','Heyelan','Çığ','Fırtına','Kuraklık'],
@@ -741,7 +738,6 @@ elif module=='Afet Analizi':
 
 elif module=='Siz Sorun':
     y0,y1,m,distance=deprem_kapsami()
-    heading('GOOGLE ADK / GEMINI','Siz Sorun','Yedi afetin mevcut veri kapsamını, deprem istatistiklerini ve ilçe karşılaştırmalarını açıklayan Google ADK ajanı.')
     yardim_ipucu('Siz Sorun')
     try:
         geo,depremler,illers,eslesenler=deprem_bul(y0,y1,m,distance)
@@ -805,8 +801,6 @@ elif module=='Yönetici Girişi':
     admin_page(_atlas_data_settings)
 
 elif module=='Hakkımızda':
-    heading('PROJE HAKKINDA', 'Hakkımızda',
-            'Afet Atlas, Türkiye için veriye dayalı bölgesel karşılaştırma ve keşif platformudur.')
     a,b,c,d=st.columns(4)
     for slot,value,label in [(a,'81','İl'),(b,'973','İlçe'),(c,'7','Afet türü'),(d,'4','Ticari sektör')]:
         with slot: st.metric(label,value)
@@ -823,8 +817,6 @@ elif module=='Hakkımızda':
     st.link_button('GitHub kaynak kodu','https://github.com/utkuerekinci/afet-atlas')
 
 elif module=='Yardım':
-    heading('KULLANIM REHBERİ','Afet Atlas nasıl kullanılır?',
-            'Birkaç adımda haritayı keşfet, sonuçları karşılaştır ve sorularını yanıtla.')
     st.markdown('#### Başlamak için')
     st.write('Masaüstünde üst menüyü; mobilde sol üstteki menü simgesini kullanarak bölümleri açabilirsin.')
     steps=[
@@ -859,7 +851,6 @@ elif module=='Yardım':
         git_modul('Genel Bakış')
 
 else:
-    heading('VERİ & YÖNTEM','Kaynaklar ve Puanlama','Veriler, model ağırlıkları ve geçerli kapsamları ayrı ayrı incele.')
     yardim_ipucu('Veri ve Yöntem')
     st.markdown("""### Veri kaynakları
 - [OGM 2024 il yangın istatistikleri](https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2053) ve [2025 il yangın istatistikleri](https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2364): gösterilen il tabloları ikincil aktarım; resmî Excel satır kontrolü bekliyor.

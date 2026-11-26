@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from html import escape
+import re
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -45,7 +46,8 @@ def veri_yukle():
 
 
 def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
-                 label: str, key: str, secim: bool = True, *, il_degerlerini_yaz: bool = False):
+                 label: str, key: str, secim: bool = True, *, il_degerlerini_yaz: bool = False,
+                 yukseklik: int = 540):
     """Tam il yüzeyinden tıklanabilir, sürüklenemeyen, tek kadrajlı atlas."""
     from streamlit_folium import st_folium
     from atlas_sabit_harita import hazirla_harita, il_olayi
@@ -54,7 +56,7 @@ def ortak_harita(sinirlar: dict, province: pd.DataFrame, col: str,
     zoom=bool(st.session_state.get('_atlas_zoom_city',False))
     harita = hazirla_harita(province, col, label, chosen, il_degerlerini_yaz=il_degerlerini_yaz, yakinlastir=zoom)
     result = st_folium(
-        harita, height=540, use_container_width=True,
+        harita, height=yukseklik, use_container_width=True,
         key='sabit_harita_'+key,
         returned_objects=['last_object_clicked','last_object_clicked_count','last_object_clicked_tooltip'] if secim else [],
     )
@@ -190,7 +192,23 @@ def aciklama_alani(ranked:pd.DataFrame, meta:dict):
     top=data['birinci']
     st.markdown('### 🏆 Neden Bu İlçe Birinci?')
     st.markdown(f"**{top['il']} / {top['ilce']}** · {top['puan']:.1f} puan")
-    st.write(data['yorum_paragrafi'])
+    # Harita hizasini aşmayan, anlama uygun kısa açıklama.
+    # Kaynağın ilk iki tam cümlesi kullanılır; kelime ortasından kesilmez.
+    narrative = str(data.get('yorum_paragrafi', '')).strip()
+    sentences = re.split(r'(?<=[.!?])\s+', narrative)
+    summary = ''
+    for sentence in sentences:
+        if not sentence:
+            continue
+        if len(summary) + len(sentence) + 1 > 380:
+            break
+        summary = (summary + ' ' + sentence).strip()
+        if len(summary) >= 220:
+            break
+    if not summary:
+        words = narrative.split()
+        summary = ' '.join(words[:48]).rstrip(' ,;:.') + ('…' if len(words)>48 else '')
+    st.write(summary)
     gemini_yorum_butonu(ilce_baglam(ranked, meta, data),
                         key='ilce_'+meta['mod']+'_'+meta['kapsam'].replace(' ','_'))
 
@@ -337,12 +355,13 @@ def yasam_ticaret_sayfasi(mode:str):
         city=il_secimi(sorted(province.İl.tolist()),mode,label='Şehir ara / seç')
     with ilcekutusu:
         ilce_arama(df,mode,label='İlçe ile il bul')
-    map_area, place_panel=st.columns([2.1,1],gap='medium')
+    map_area, place_panel=st.columns([3.0,1.0],gap='small')
     if mode=='ticaret':
         pref='Dengeli'
     with map_area:
         ortak_harita(geo,province,layer,layer,mode,
-                     il_degerlerini_yaz=(mode=='ticaret' and layer in ('Sektörel fırsat puanı', 'İlçe sayısı')))
+                     il_degerlerini_yaz=(mode=='ticaret' and layer in ('Sektörel fırsat puanı', 'İlçe sayısı')),
+                     yukseklik=610)
         if mode=='ticaret' and layer=='Sektörel fırsat puanı':
             st.caption(f'Harita sektörü: **{sector}** · Her ilin ulusal ölçekte en yüksek puanlı üç ilçesinin ortalaması.')
     city=st.session_state.get('secilen_il',city)
@@ -364,8 +383,7 @@ def yasam_ticaret_sayfasi(mode:str):
             st.markdown(facts,unsafe_allow_html=True)
             if not local_rank.empty:
                 aciklama_alani(local_rank,local_meta)
-    # Sıralamalar harita ve sağ panelin ALTINDA, tam içerik genişliğinde gösterilir.
-    st.markdown('---')
+    # Harita ve panel satırı tamamlandıktan hemen sonra tam genişlikte sıralama.
     siralama_alani(df,mode,city,sector,pref)
     if mode=='ticaret':
         if status.get('osm_aktif'):

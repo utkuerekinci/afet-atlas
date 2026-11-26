@@ -285,6 +285,9 @@ ORTAK_KONTROL_CSS = r"""<style>
  width:max-content!important;
  max-width:calc(100% - 24px)!important;
 }
+/* Yaşam ve ticaret haritaları daha yüksek: aynı köşe hizasını koru. */
+.stApp .st-key-map_reset_yasam,
+.stApp .st-key-map_reset_ticaret {transform:translate(13px,-635px)!important;}
 .stApp [class*="st-key-map_reset_"] button,
 .stApp [class*="st-key-map_reset_"] [data-testid^="stBaseButton"] {
  background:rgba(9,19,33,.92)!important;
@@ -308,6 +311,8 @@ ORTAK_KONTROL_CSS = r"""<style>
  .stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div {min-height:42px!important;}
  .stApp .st-key-yasam_tercih_grubu [data-testid="stRadio"] [role="radiogroup"] label {min-height:48px!important;padding:9px 11px!important;}
  .stApp [class*="st-key-map_reset_"] {transform:translate(7px,-565px)!important;}
+ .stApp .st-key-map_reset_yasam,
+ .stApp .st-key-map_reset_ticaret {transform:translate(7px,-635px)!important;}
 }
 
 </style>"""

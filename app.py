@@ -62,7 +62,7 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] {
     color: #dce6f3;
 }
 [data-testid="stHeader"] {background:transparent;}
-[data-testid="stMain"] .block-container {max-width:1300px; padding:1.15rem 1.7rem 4rem;}
+[data-testid="stMain"] .block-container {max-width:1500px; padding:1rem 1.4rem 3rem;}
 [data-testid="stSidebar"] {background:#0d1828; border-right:1px solid #26354b;}
 [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {padding-top:1.6rem;}
 [data-testid="stSidebar"] p {color:#acbdd2;}
@@ -452,6 +452,12 @@ st.markdown("""<style>
  .atlas-brand{padding-left:36px;font-size:21px}.atlas-brand small{display:block;margin:3px 0 0;font-size:9px}
  [data-testid="stMain"] .block-container{padding-left:1rem!important;padding-right:1rem!important}
 }
+/* Genel bakış açıklaması üst başlıkla birleşir; harita ilk ekranda görünür. */
+.atlas-brand{margin-bottom:5px!important;}
+.atlas-inline-intro {font-size:12.5px;line-height:1.45;color:#c7d9e8;
+ margin:-1px 0 8px;max-width:1150px;}
+.atlas-inline-intro strong{color:#f3f8ff;font-weight:750;}
+@media(max-width:700px){.atlas-inline-intro{font-size:11.5px;line-height:1.35;margin-bottom:6px;}}
 </style>""",unsafe_allow_html=True)
 
 # ---------- v4.3: yerleşik hamburger ile açılan menü + katlanabilir analizler ----------
@@ -470,7 +476,16 @@ def git_modul(target: str) -> None:
 
 
 # Masaüstünde yatay navigasyon; küçük ekranda yerleşik hamburger menü.
-st.markdown('<div class="atlas-brand"><span class="atlas-brand-dot">◉</span> AFET <b>ATLAS</b><small> TÜRKİYE BÖLGESEL ANALİZ PLATFORMU</small></div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="atlas-brand"><span class="atlas-brand-dot">◉</span> AFET <b>ATLAS</b>'
+    '<small> TÜRKİYE BÖLGESEL ANALİZ PLATFORMU</small></div>'
+    + ('<div class="atlas-inline-intro"><strong>Türkiye’nin haritasından fazlası.</strong> '
+       'Nerede yaşamak isterdin? Hangi bölgede yeni bir iş kurardın? '
+       'Doğal afetler hangi illerde öne çıkıyor? Türkiye’yi yaşam, ticaret ve afet '
+       'perspektiflerinden keşfet; ilçelerin hikâyesini verilerle karşılaştır.</div>'
+       if module == 'Genel Bakış' else ''),
+    unsafe_allow_html=True,
+)
 with st.container(key='atlas_desktop_nav'):
     nav_items = ['Genel Bakış','Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel',
                  'Siz Sorun','Yardım','Veri ve Yöntem','Hakkımızda']
@@ -645,23 +660,6 @@ def dis_dashboard(geo,depremler,illers,eslesenler,overview=False):
 
 
 if module=='Genel Bakış':
-    st.markdown(
-        '<section class="hero-return">'
-        '<div class="hero-return-copy">'
-        '<div class="overline"><span class="dot"></span> BİR ÜLKE · ÜÇ FARKLI BAKIŞ</div>'
-        '<h1>AFET <em>ATLAS.</em></h1>'
-        '<h2>Türkiye’nin haritasından fazlası.</h2>'
-        '<p>Nerede yaşamak isterdin? Hangi bölgede yeni bir iş kurardın? '
-        'Doğal afetler hangi illerde öne çıkıyor? Türkiye’yi yaşam, ticaret ve afet '
-        'perspektiflerinden keşfet; ilçelerin hikâyesini verilerle karşılaştır.</p>'
-        '</div>'
-        '<div class="atlas-orbit" aria-hidden="true">'
-        '<div class="orbit-ring"></div><div class="orbit-ring inner"></div>'
-        '<div class="orbit-center"><strong>TR</strong><span>KEŞFET</span></div>'
-        '<div class="orbit-node life">YAŞAM</div>'
-        '<div class="orbit-node trade">TİCARET</div>'
-        '<div class="orbit-node disaster">AFET</div>'
-        '</div></section>', unsafe_allow_html=True)
     yardim_ipucu('Genel Bakış')
     topic=st.radio('Keşif alanı',OVERVIEW_TOPICS,horizontal=True,key='home_v40_topic')
     try:

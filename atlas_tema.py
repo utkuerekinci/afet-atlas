@@ -21,6 +21,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -32,6 +33,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -53,6 +55,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -64,6 +67,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -86,6 +90,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -100,6 +105,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -111,6 +117,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -126,6 +133,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -141,6 +149,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -152,6 +161,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -163,6 +173,7 @@ ORTAK_KONTROL_CSS = r"""<style>
  .st-key-v36_fire_metric,
  [class*="st-key-il_select_"],
  .st-key-v34_sektor,
+ .st-key-v34_preference,
  .st-key-v36_disaster,
  .st-key-v45_year_start,
  .st-key-v45_year_end,
@@ -253,9 +264,41 @@ ORTAK_KONTROL_CSS = r"""<style>
 .stApp [data-testid="stRadio"] [data-testid="stWidgetLabel"] p {
  font-size:14px!important;font-weight:700!important;
 }
+
+/* Harita içi geri dönüş düğmesi */
+.stApp [class*="st-key-map_reset_"] {
+ position:relative!important;
+ margin-top:-455px!important;
+ margin-left:14px!important;
+ z-index:30!important;
+ width:fit-content!important;
+}
+.stApp [class*="st-key-map_reset_"] button,
+.stApp [class*="st-key-map_reset_"] [data-testid^="stBaseButton"] {
+ background:rgba(9,19,33,.88)!important;
+ border:1px solid #54728a!important;
+ color:#f7fbff!important;
+ border-radius:999px!important;
+ min-height:34px!important;
+ padding:5px 12px!important;
+ box-shadow:0 8px 20px rgba(0,0,0,.26)!important;
+}
+.stApp [class*="st-key-map_reset_"] button:hover,
+.stApp [class*="st-key-map_reset_"] [data-testid^="stBaseButton"]:hover {
+ background:rgba(22,38,58,.95)!important;
+ border-color:#8eb6d4!important;
+}
+.stApp [class*="st-key-map_reset_"] button p,
+.stApp [class*="st-key-map_reset_"] [data-testid^="stBaseButton"] p,
+.stApp [class*="st-key-map_reset_"] button span {
+ color:#f7fbff!important;
+ font-size:13px!important;
+ font-weight:700!important;
+}
 @media(max-width:680px){
  .stApp [data-testid="stSelectbox"] [data-baseweb="select"] > div {min-height:42px!important;}
  .stApp .st-key-yasam_tercih_grubu [data-testid="stRadio"] [role="radiogroup"] label {min-height:48px!important;padding:9px 11px!important;}
+ .stApp [class*="st-key-map_reset_"] {margin-top:-435px!important;}
 }
 
 </style>"""

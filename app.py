@@ -36,7 +36,7 @@ from atlas_deprem_kayitlari import secilen_il_kayitlari, hareketliligi_yuksek_be
 from harita_cizimi import turkiye_haritasi
 from afet_atlas_adk.calistir import ajana_sor_ayrintili
 from veri import depremleri_getir, il_sinirlarini_getir
-from atlas_ui import yasam_ticaret_sayfasi, veri_yukle, il_sinirlari, ortak_harita, il_secimi
+from atlas_ui import yasam_ticaret_sayfasi, veri_yukle, il_sinirlari, ortak_harita, il_secimi, ilce_arama
 from atlas_afet_ui import diger_afet_sayfasi
 from atlas_analiz import illere_ozet
 from atlas_gemini_yorum import il_baglam, gemini_yorum_butonu, api_anahtari
@@ -670,7 +670,7 @@ if module=='Genel Bakış':
         if not labels:
             st.caption('Bu keşif alanına ait harita verisi bulunamadı.')
         else:
-            filter_column,city_column=st.columns([1.3,1],gap='small')
+            filter_column,city_column,district_column=st.columns([1.15,0.95,1.15],gap='small')
             with filter_column:
                 if topic in ('Doğal afetler', 'Ticari hareketlilik'):
                     layer=labels[0]
@@ -680,6 +680,8 @@ if module=='Genel Bakış':
                                        help='Haritada renklendirilecek veriyi seç.',filter_mode=None)
             with city_column:
                 city=il_secimi(sorted(provinces['İl'].tolist()),'home_v40',label='Şehir ara / seç')
+            with district_column:
+                ilce_arama(districts,'home_v40',label='İlçe ile il bul')
             layer_data,layer_col,layer_text=layer_frame(provinces,topic,layer)
             map_column, info_column=st.columns([2.2,1],gap='medium')
             with map_column:
@@ -698,7 +700,7 @@ if module=='Genel Bakış':
                     st.caption(f'{details["key_label"]}: {details["key_value"]}')
                     st.markdown('**Bu ili analiz et**')
                     for idx,target in enumerate(('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
-                        if st.button(target+' →',key='home_city_nav_'+str(idx),use_container_width=True):
+                        if st.button(target+' →',key='home_city_nav_'+str(idx),use_container_width=True, type='primary'):
                             git_modul(target)
             gemini_yorum_butonu(il_baglam(districts,provinces,city,topic,layer,details),
                                 key='genel_bakis_'+topic.replace(' ','_'))

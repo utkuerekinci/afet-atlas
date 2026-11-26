@@ -267,10 +267,10 @@ def genel_bakis_detay_kontrolu(baglam: dict, key: str = 'genel_bakis') -> str | 
         if expanded:
             st.session_state[state_key] = {'digest': digest, 'expanded': False,
                                            'answer': stored.get('answer')}
-            return None
+            st.rerun()
         if stored.get('digest') == digest and stored.get('answer'):
             st.session_state[state_key] = {**stored, 'expanded': True}
-            return stored['answer']
+            st.rerun()
         secret = api_anahtari()
         if not secret:
             st.info('Ayrıntılı yorum için GOOGLE_API_KEY değeri Streamlit Secrets içine eklenmeli.')
@@ -293,7 +293,7 @@ def genel_bakis_detay_kontrolu(baglam: dict, key: str = 'genel_bakis') -> str | 
                 return None
         st.session_state[state_key] = {'digest': digest, 'expanded': True,
                                        'answer': answer}
-        return answer
+        st.rerun()
     return stored.get('answer') if expanded else None
 
 

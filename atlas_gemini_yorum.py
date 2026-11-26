@@ -213,13 +213,13 @@ def gemini_buton_metni(baglam: dict) -> str:
     return '✦ Gemini ile bölge hakkında daha fazla bilgi'
 
 
-def gemini_yorum_butonu(baglam: dict, key: str) -> None:
+def gemini_yorum_butonu(baglam: dict, key: str, button_label: str | None = None) -> None:
     """Streamlit'te talep üzerine yorum; 6 saat saklanan, kapsam anahtarlı önbellek."""
     import streamlit as st
     payload_json=json.dumps(_native(baglam),ensure_ascii=False,sort_keys=True)
     digest=hashlib.sha256(payload_json.encode('utf-8')).hexdigest()
     memory_key='gemini_text_'+key
-    pressed=st.button(gemini_buton_metni(baglam),key='gemini_btn_'+key, type='primary')
+    pressed=st.button(button_label or gemini_buton_metni(baglam),key='gemini_btn_'+key, type='primary', use_container_width=bool(button_label))
     if pressed:
         secret=api_anahtari()
         if not secret:

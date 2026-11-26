@@ -727,13 +727,19 @@ if module=='Genel Bakış':
                     st.markdown(f'### 📍 {escape(city)}')
                     st.markdown(f'<div class="quick-facts"><span>{population_text} nüfus</span><span>{details["ilce"]} ilçe</span></div>',unsafe_allow_html=True)
                     st.write(short)
-                    st.markdown(f'<div class="quick-facts"><span>{escape(str(details["key_label"]))}: {escape(str(details["key_value"]))}</span></div>',unsafe_allow_html=True)
+                    fact_col, learn_col = st.columns([1.35, 1], gap='small', vertical_alignment='center')
+                    with fact_col:
+                        st.markdown(f'<div class="quick-facts"><span>{escape(str(details["key_label"]))}: {escape(str(details["key_value"]))}</span></div>',unsafe_allow_html=True)
+                    with learn_col:
+                        gemini_yorum_butonu(
+                            il_baglam(districts,provinces,city,topic,layer,details),
+                            key='genel_bakis_'+topic.replace(' ','_'),
+                            button_label='Daha Fazla Bilgi',
+                        )
                     st.markdown('**Bu ili analiz et**')
                     for idx,target in enumerate(('Afet Analizi','Yaşam Kalitesi','Ticari Potansiyel')):
                         if st.button(target+' →',key='home_city_nav_'+str(idx),use_container_width=True, type='primary'):
                             git_modul(target)
-            gemini_yorum_butonu(il_baglam(districts,provinces,city,topic,layer,details),
-                                key='genel_bakis_'+topic.replace(' ','_'))
     except Exception:
         import logging
         logging.getLogger(__name__).exception('Genel Bakış haritası oluşturulamadı')

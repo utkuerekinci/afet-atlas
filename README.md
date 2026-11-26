@@ -1,283 +1,370 @@
-# Afet Atlas v4.8 — Özel Yönetici Paneli
+<div align="center">
 
-Afet Atlas'ta **yalnızca yetkili yöneticiye** açık kullanıcı adı/şifre girişi ve **ayrı PRIVATE GitHub veri deposu** üzerinden veri yönetimi eklendi. İlgili dosyalar doğrulanmadan yayınlanmaz; sürüm geçmişinden geri dönülebilir. Açık kaynak kod deposu ve kullanıcıya açık analizler korunur.
+# AFET ATLAS
 
-- **Yeni kurulum:** [YONETICI_KURULUM.md](YONETICI_KURULUM.md)
-- **Sürüm özeti:** [V48_YONETICI_PANELI.md](V48_YONETICI_PANELI.md)
-- **Açık kaynak kod deposu:** https://github.com/utkuerekinci/afet-atlas
+### Türkiye Bölgesel Analiz ve Karar Destek Platformu
 
----
+**BBY261 İleri Programlama · Python · Streamlit · Google ADK / Gemini**
 
-## v4.7.2 — Yardım sayfasında doğrudan GitHub kaynak kod bağlantısı
+Türkiye'nin 81 ilini ve 973 ilçesini; doğal afet göstergeleri, yaşam koşulları ve sektörel ticari potansiyel açısından aynı etkileşimli harita üzerinde incelemeyi amaçlayan veri odaklı bir uygulama.
 
-Yardım → **Proje ve kaynak kod** bölümündeki **GitHub’da kaynak kodu görüntüle** düğmesi doğrudan aşağıdaki mevcut kaynak kod deposuna gider:
+[**Canlı uygulamayı aç**](https://afetatlas.streamlit.app/) · [**Kaynak kodu görüntüle**](https://github.com/utkuerekinci/afet-atlas)
 
-**https://github.com/utkuerekinci/afet-atlas**
+</div>
 
-Kullanıcıların bu düğmeyi görebilmesi için Streamlit Secrets veya ortam değişkeni ayarlamaya gerek yoktur. İleride depo adresi değişirse isteğe bağlı `AFET_ATLAS_KOD_REPOSU` ayarıyla geçersiz kılınabilir. **Bu adres yalnızca herkese açık uygulama kodu deposudur; yönetici paneli için planlanan ayrı özel veri deposu değildir.** Yönetici paneli henüz uygulanmadı.
+![Afet Atlas güncel arayüzünde yaşam ve nüfus katmanı](docs/screenshots/11-guncel-genel-bakis-yasam.webp)
 
----
-
-## v4.6 — Ana sayfa görseli, eksik menü ve yaşam sıralaması düzeni
-
-v4.2.1'in **TR / YAŞAM / TİCARET / AFET** görseli geri getirildi; sol menüde **Siz Sorun, Yardım, Veri ve Yöntem** bağlantıları tekrar açıldı. Yaşam Kalitesi'nde **Neden Bu İlçe Birinci?** yorumu sağ üstteki boş alana taşındı. Sıralamalarda **İki İlçeyi Karşılaştır**, sayısal model ayrıntılarından önce geliyor. v4.5 afet analizine dokunulmadı. Ayrıntılar: [V46_GERI_GETIRILEN_BOLUMLER.md](V46_GERI_GETIRILEN_BOLUMLER.md).
+> **Kapsam notu:** Afet Atlas bir keşif ve karşılaştırma aracıdır. Ekranda yer alan güvenlik, yaşam tercihi ve ticari fırsat puanları uygulamanın veri kapsamı ve ağırlıklarına dayanan **göreli endekslerdir**. Gelecekteki afetlerin olasılığını, bir ilçedeki bireysel yaşam memnuniyetini veya bir yatırımın getirisini ölçmez.
 
 ---
 
-## v4.5 — Harita filtreleri ve açılır menü düzenlemesi
+## Proje özeti
 
-Afet türü ve deprem filtreleri haritanın üstüne taşındı; seçilen ilin deprem kayıtları il özetinde, Türkiye genelinde hareketliliği en yüksek beş il ayrı sekmede yer alıyor. Streamlit'in **ana sol menü aç/kapat düğmesi** hamburger olarak belirginleştirildi; **Analizler** alt menüsü v4.3 görünümüne döndü. Ayrıntılar: [V45_HARITA_VE_MENU.md](V45_HARITA_VE_MENU.md).
+| Kapsam | Uygulamadaki karşılığı |
+| :--- | :--- |
+| **81 il** | İl sınırları, il seçimi ve il düzeyi tematik haritalar |
+| **973 ilçe** | Nüfus, SEGE ve uygun göstergelerle ilçe sıralaması ve karşılaştırma |
+| **7 afet başlığı** | Deprem, orman yangını, sel/taşkın, heyelan, çığ, fırtına ve kuraklık |
+| **4 ticari sektör** | Yeme-içme, market/perakende, hizmetler, lojistik/depolama |
+| **Yapay zekâ** | Google ADK araçlarını kullanan *Siz Sorun* asistanı ve Gemini destekli yorumlar |
+| **Veri yönetimi** | Yetkili giriş, CSV/JSON doğrulaması, ayrı özel GitHub veri deposuna yayınlama ve sürüm geçmişi |
 
----
-
-## v4.3 — Daha sade ve erişilebilir Afet Atlas arayüzü
-
-Genel Bakış, Yaşam, Ticaret ve Afet sayfalarında **sabit ve il alanı tıklanabilir Türkiye haritası**, kısa başlıklar, kompakt ölçümler ve dar ekran uyumlu yerleşim kullanılır. **Analizler** açılır menüsü ve yeni **Yardım** sayfası eklendi. Haritadan il seçip **Ayrıntıya Git** ile ilgili analize geçebilirsin. Mevcut nüfus/SEGE/OSM ve afet verileri ile Gemini/ADK altyapısı aynen korunur. Yönetici paneli bu sürümde eklenmedi.
-
-Çalıştırmak için: `python -m pip install -r requirements.txt` ve `python -m streamlit run app.py`. Ayrıntılar: [V43_KULLANICI_ARAYUZU.md](V43_KULLANICI_ARAYUZU.md).
-
----
-
-## v4.0 — Genel Bakış yenilendi
-
-Ana sayfada deprem paneli yerine üç mercekli ortak harita bulunur: **Yaşam ve nüfus**, **Ticari hareketlilik**, **Doğal afetler**. Nüfus/SEGE, OSM işletme-ulaşım ve orman yangını katmanlarını seçebilir, il seçip dinamik açıklamaları okuyabilirsin. Giriş metni ve özet kartları yenilendi. **Analiz Alanları** kartları korundu. Detaylı değişiklikler `V40_GENEL_BAKIS.md` dosyasında.
-
-# Afet Atlas v3.9 — Yorum Odaklı Analiz
-
-Önce [V39_DEGISIKLIKLER.md](V39_DEGISIKLIKLER.md) dosyasını okuyun. Türkiye geneli ve il içi ticaret/yaşam yorumları geliştirildi.
-
----
-
-# Afet Atlas v3.8 — Türkiye geneli ticari OSM verileri entegre
-
-Bu ZIP v3.6 afet katmanlarını korurken ticari potansiyel için **OSM işletme kümelenmesi, nüfusa göre rekabet baskısı, toplu taşıma kayıtları ve opsiyonel kira verisi** entegrasyonunu ekler. Akışın nasıl açılacağı ve eksik olan büyük kaynak dosyalarının nasıl hazırlanacağı için [TICARET_V37_KURULUM.md](TICARET_V37_KURULUM.md) belgesini oku.
-
-**Veri durumu:** 2025 nüfus + SEGE-2022, 973 ilçede hazırdır. OSM işletme/ulaşım özet sayıları için geliştirici bir defa Geofabrik 623 MB PBF dosyasını işleyip `ticaret_osm_ilce.csv` + manifesti üretmelidir. Üretilmediği sürece mevcut nüfus/SEGE tabanlı ticari puanlama çalışır, OSM göstergeleri gösterilmez. Ücretli Tapusor kiraları gerçek veri olmadan kullanılmaz. Uydurma müşteri, kira veya yaya sayısı yoktur.
-
-Çalıştırma: `python -m pip install -r requirements.txt`, sonra `python -m streamlit run app.py`. Test: `python -m unittest discover -v`.
-
----
-
-# Afet Atlas v3.6 — Altı yeni afet katmanı (2024/2025)
-
-Bu sürümde önceki deprem, SEGE-2022, TÜİK ADNKS 2025, yaşam kalitesi, ticaret ve Google ADK modülleri korunmuş; **Afet Analizi** içindeki altı bekleme ekranı gerçek kaynaklı inceleme ekranlarına dönüştürülmüştür. 81 il haritası her afet sekmesinde kullanılabilir. **Ancak altı afetin tamamında 81 ilin kesin olay sayısına ulaşılmış değildir.** Veri kanıtının izin verdiği analiz türü farklıdır.
-
-| Afet | Aktif yıl | Ekranda gösterilen | Kaynak kesinliği |
-|---|---|---|---|
-| Deprem | 2025 varsayılan; USGS seçilebilir tarih | Olay sayısı, puan, harita, ADK | USGS gerçek olay CSV |
-| Orman yangını | 2024, 2025 | 2025'te 81 il sayısı; 2024'te 77 il sayısı; yanan alan, ilk 10, il haritası | **İkincil aktarım**, ulusal OGM toplamı kontrol edildi; resmî Excel satır karşılaştırması yapılmadı |
-| Sel / taşkın | 2024 | MGM ulusal 434 olay; raporda adı belirtilen 8 il, harita | Resmî rapor metni; tüm iller için kesin il sayıları **yok** |
-| Heyelan | 2024 | MGM ulusal 42 olay; adı belirtilen 10 il, harita | Resmî rapor metni; tüm iller için kesin il sayıları **yok** |
-| Çığ | 2024 | MGM ulusal 17 olay; Van 6–8 ve raporda belirtilen diğer iller 1–2 sınıfı | Resmî rapor harita sınıfları; kesin sayıya dönüştürülmez |
-| Fırtına | 2024 | MGM ulusal 257 olay; metinde öne çıkan 5 il, harita | Resmî rapor metni; tüm iller için kesin il sayıları **yok** |
-| Kuraklık | 2024 | 7 coğrafi bölgenin yıllık yağış sapması ve bunların 81 ile haritada yansıtılması | **Bölgesel yağış anomalisi**; il düzeyi SPI ya da afet sayısı değildir |
-
-## Çalıştırma
-
-```powershell
-python -m pip install -r requirements.txt
-python -m streamlit run app.py
-```
-
-Sol menüden **Afet Analizi → Afet türü** seç, sağ taraftaki il haritasından ili seç. Yangın için ayrıca 2024/2025 ve yangın sayısı/yanan alan filtresi açılır. Diğer beş modülde MGM 2024 raporu kapsamıyla çalışılır. Bütün ekranlarda veri tablosu CSV indirilebilir.
-
-## Kaynaklar
-
-- OGM 2024 il verilerinin resmî adresi: https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2053
-- OGM 2025 il verilerinin resmî adresi: https://istatistik.tarimorman.gov.tr/Sayfa/Detay/2364
-- MGM 2024 meteorolojik afet raporu: https://www.mgm.gov.tr/FILES/genel/raporlar/2024%20MetAfet%20Degerlendirme%20Raporu_V1.pdf
-- MGM 2024 iklim raporu: https://mgm.gov.tr/FILES/iklim/yillikiklim/2024-iklim-raporu.pdf
-
-## Veri kanıtı ve puanlama
-
-- Yangın sayısı ve yanan alan, kaynak tabloya dayalı sayısal ölçümlerdir; orijinal OGM Excel ile doğrulama bekler. 2024'te eksik hücreler `NaN`, yani **bilinmiyor** olarak kalır. 2025 toplamı 3.224; 2024 toplamı 3.797'dir.
-- Diğer meteorolojik afetlerde `Rapor vurgusu=1/2` yalnızca kaynak metinde adı geçen/öne çıkan iller için **görsel gösterim kodudur**, olay sayısı veya risk puanı değildir. Raporda adı geçmeyen illere sıfır atanmamıştır.
-- Çığ için rapordaki sayısal aralıkları (`6–8`, `1–2`) **kesin bir sayı** ile değiştirmedik.
-- Kuraklık katmanında gösterilen yağış sapması **7 bölge** ölçümüdür. Coğrafi olarak aynı bölgedeki her il aynı değeri alır; il için özgün kuraklık verisi veya SPI değildir.
-- Bu göstergeler tek bir sahte “% güvenlik” endeksinde birleştirilmez.
-- ADK'ye `afet_ulusal_ozet`, `afet_il_detayi`, `afet_illeri_sirala`, `afet_veri_kaynagi` olmak üzere dört yeni araç eklendi; bunlar kaynak kısıtlarını da döndürür.
-- Önceki `docs/screenshots` klasörü korunmuştur. İlk/son ekran görüntülerini o dizine yerleştirip README'ye bağlayabilirsiniz.
-
-## Testler
-
-```powershell
-python -m unittest discover -v
-```
-
-Yeni afet testleri `test_diger_afet_katmanlari.py` içinde. Yerel otomatik testler gerçek Gemini servisine bağlanmaz; API yanıtı ve harita tıklaması tarayıcıda ayrıca sınanmalıdır.
-
----
-
-## Önceki sürümün dokümantasyonu
-
-# AFET ATLAS · Türkiye Bölgesel Analiz ve Karar Destek Platformu
-
-**BBY261 İleri Programlama · Python / Streamlit / Google Agent Development Kit**  
-**Sürüm: v3.5.4 — 973 ilçe nüfusu ve SEGE tam eşleşti; çok amaçlı ADK**
-
-Afet Atlas, Türkiye'deki **81 ili** harita üzerinden keşfedip doğal afet hareketliliğini, ilçe nüfusunu ve projede tanımlanmış bölgesel değerlendirme modellerini karşılaştırmak için geliştirilen öğrenci projesidir.
-
-## Kurulum ve çalıştırma
-
-```powershell
-python -m pip install -r requirements.txt
-python -m streamlit run app.py
-```
-
-Tarayıcıda terminalin gösterdiği yerel adresi aç. Google ADK'nin internetteki modeline erişmek için Google AI Studio anahtarını **ortam değişkenine** veya **Streamlit Secrets** bölümüne ekle; GitHub'a gönderme:
-
-```toml
-GOOGLE_API_KEY = "SENIN_GERCEK_ANAHTARIN"
-GOOGLE_GENAI_USE_VERTEXAI = "FALSE"
-AFET_ATLAS_MODEL = "gemini-3.5-flash-lite"
-```
-
-Model adı hesabının erişimi ve mevcut Google model seçenekleriyle uyumlu olmalı. Harita ve Python analizleri API anahtarı olmadan da çalışır.
+Uygulama üç ana soruyu birlikte ele alır: **Bir ilde hangi göstergeler öne çıkıyor?** **İlçeler hangi tercihlere göre sıralanıyor?** **Bu sonuçların arkasında hangi veri ve model ağırlıkları var?** Genel Bakış sayfası bütünleşik bir giriş sunarken ayrıntılı bölümler her analizin filtrelerini ve gerekçelerini ayrı gösterir.
 
 ## Uygulama bölümleri
 
-| Bölüm | Etkileşim | Veri kapsamı |
-|---|---|---|
-| Genel Bakış | Ortak haritadan il seçimi, genel kayıtlar | Gerçek USGS 2025 verisi, 81 il |
-| Afet Analizi | Deprem katmanı, yıl / M / 0–150 km seçenekleri, il sıralaması | Deprem hazır; diğer altı afet verisi henüz eklenmedi |
-| Yaşam Kalitesi | Haritada nüfus ve SEGE, ulusal/il içi sıralamalar | 2025 nüfus + 2022 SEGE 973/973 eşleşmiş olarak pakette |
-| Ticari Potansiyel | Sektör seçimi, nüfus katmanı, ilçe sıralaması | Nüfus, yoğunluk ve gerçek SEGE dahil; sektör işletme sayıları henüz yok |
-| Neden Bu İlçe Birinci? | İkinci ile puan farkı, katkı/ağırlıklar | Hem ulusal hem il içi, ticarette sektöre göre |
-| Siz Sorun | Gemini + Google ADK araçlarının çalışması ve izleri | 13 deprem + 3 kaynak/metodoloji + nüfus varsa 13 bölgesel araç |
-| Veri ve Yöntem | Açık kaynak ve puanlama anlatımı | Verinin türü ve yılı açıklanır |
+### 1. Genel Bakış: Üç farklı katmanda Türkiye haritası
 
-**Nüfus kaynağı düzeltildi:** `topografya/veri/yayin/nufus/gostergeler.json` kullanılıyor. Eski CSV 11.441 kişi eksik toplama neden oluyordu. [Düzeltme notları](HATA_DUZELTME_NOTLARI.md).
+**Genel Bakış**, aynı 81 il haritasını üç farklı amaçla kullanır:
 
-**2025 nüfus + SEGE-2022 veri entegrasyonu tamamlandı:** Paket içinde gerçek `ilce_nufus_2025.csv` ve resmî PDF'nin Ek-1 ile Ek-2 tablolarından doğrulanmış `ilce_sege_2022.csv` bulunuyor. Yüklenen nüfus CSV'sindeki 100 il adı önek farkı ve Samsun'daki `19 Mayıs / Ondokuzmayıs` ad farkı, aynı il içinde tekil biçimde eşleştirildi: **973/973 ilçe, 81/81 il, 86.092.168 kişi**. `python kontrol_sege_nufus.py` hazır birleştirilmiş tabloyu ve denetim dosyasını yeniden üretir. `ESLESME_DUZELTMESI.md` ayrıntıları içerir. 2022 SEGE, 2025 yaşam kalitesinin resmî ölçümü değildir. Deprem dışındaki altı afetin sayısal entegrasyonu hâlâ eksik.
+- **Yaşam ve nüfus:** Nüfus (2025), ilçe sayısı ve ortalama ilçe SEGE sırası gibi göstergeler.
+- **Ticari hareketlilik:** İl bazında ticari ön inceleme puanlarının harita üzerinde karşılaştırılması.
+- **Doğal afetler:** Yedi afet bileşeninden oluşturulmuş proje güvenlik endeksinin il bazında karşılaştırılması.
 
-**Endekslerimiz resmî güvenlik veya gerçek işletme kazancı yüzdesi değildir.** Ticaret modelleri veri bulunduğu ölçüde çalışan, açıkça tanımlanmış ağırlıklı göreli sıralamalardır. Eksik göstergelere 0 puan yazılmaz. Ayrıntılar: [VERI_VE_EKRAN_KAPSAMI.md](VERI_VE_EKRAN_KAPSAMI.md).
+Haritadaki iller seçilebilir. Seçilen il için kısa bir özet ve ilgili analiz sayfasına yönlendirme bulunur. Sayfanın sağ altındaki kırmızı kaydırma düğmesi sayfa konumuna göre aşağı/yukarı yön değiştirir.
 
-## Yeni: Çok yönlü ADK araçları
+| Ticari hareketlilik | Doğal afetler |
+| :---: | :---: |
+| ![Genel Bakış ticari katman](docs/screenshots/12-guncel-genel-bakis-ticaret.webp) | ![Genel Bakış doğal afet endeksi](docs/screenshots/13-guncel-genel-bakis-afet.webp) |
 
-ADK'ye 13 deprem aracı eklendi: il özetleri/karşılaştırmaları, esnek il sıralaması,
-aylık/yıllık olaylar, büyüklük grupları, olay filtreleme, puan gerekçesi ve
-ülke genelinde en büyük kayıtlar. Paketli doğrulanmış ilçe nüfusu sayesinde
-13 ayrı il/ilçe/yaşam/ticaret aracı da açılır. İlçe verisi bulunmasa bile
-3 genel kapsam/metodoloji aracı kullanılabilir.
+> Haritada gösterilen **“Güvenlik skoru (%)”**, afet yaşanma olasılığı değildir. Geçmiş kayıtların normalize edilip ağırlıklandırılmasıyla elde edilen karşılaştırmalı model değeridir. Yüksek puan, seçilen modelde daha düşük kayıtlı faaliyet düzeyini ifade eder.
 
-**Dışarıdan ikinci yapay zekâ eklenmedi.** Google ADK + Gemini mevcut Python
-veri araçlarının sonuçlarını yorumluyor; yorum tek başına istatistik üretmiyor.
+### 2. Afet Analizi: Yedi farklı veri katmanı
 
-## Yeni: Eksik veri toplama komutu
+**Afet Analizi** bölümünde deprem için başlangıç/bitiş yılı, minimum büyüklük, il sınırına yakınlık ve incelenecek il seçilebilir. Harita; il eşleşmeleri, olay puanları, sıralamalar ve ilgili kayıtları gösterebilir.
 
-Gerçek dosyaları indirme/dönüştürme denemeleri ve doğrulama koşullarının ayrıntıları:
-[VERI_TOPLAMA_DURUMU.md](VERI_TOPLAMA_DURUMU.md).
+![Deprem analizinde filtreler ve Türkiye haritası](docs/screenshots/15-guncel-deprem-filtreleri.webp)
 
-```powershell
-python kaynaklari_topla.py --hepsi
+![Seçilen ile ait deprem kayıtları ve sıralama](docs/screenshots/16-guncel-deprem-kayitlari.webp)
+
+Deprem dışındaki altı katman aynı kapsamda **eşit ayrıntıya sahip değildir**. Uygulama, elde bulunan veri ve rapor türünü birbirinden ayırır:
+
+| Afet | Mevcut yaklaşım ve sınır |
+| :--- | :--- |
+| **Deprem** | USGS olay kayıtları; koordinat, büyüklük, tarih ve il sınırına yakınlığa dayalı eşleştirme. |
+| **Orman yangını** | 2024 ve 2025 için il düzeyinde yangın sayısı/yanan alan kayıtları; kullanılan tablolar **ikincil aktarım** niteliğindedir, resmî Excel satırlarıyla tam doğrulanmış olarak sunulmaz. |
+| **Sel / taşkın** | MGM 2024 raporunda belirtilen ulusal bulgular ve adı geçen iller; her il için tam olay sayısı tablosu değildir. |
+| **Heyelan** | MGM 2024 değerlendirmesinde bildirilen bulgular ve öne çıkan iller. |
+| **Çığ** | MGM 2024 raporundaki sınıflar/aralıklar; aralıklar kesin sayıya dönüştürülmez. |
+| **Fırtına** | MGM 2024 raporundaki ulusal bulgular ve raporda öne çıkan iller. |
+| **Kuraklık** | MGM 2024 iklim raporunun yedi coğrafi bölgeye ilişkin yağış sapması; il düzeyinde bağımsız SPI ölçümü değildir. |
+
+Bir ilin raporda yer almaması, o ilde **sıfır afet yaşandığı** anlamına gelmez. Katmanlara göre eksik gözlemler ayrı değerlendirilir.
+
+<details>
+<summary><strong>Gelişimden örnek: orman yangını ve sel/taşkın katmanları</strong></summary>
+
+![Orman yangını katmanı önceki sürüm](docs/screenshots/28-gelisim-orman-yangini-v36.webp)
+
+![Sel ve taşkın katmanı önceki sürüm](docs/screenshots/30-gelisim-sel-taskin-v4.webp)
+
+</details>
+
+### 3. Yaşam Kalitesi: Tercihe göre ilçe karşılaştırması
+
+Yaşam Kalitesi bölümü, **2025 ilçe nüfusu** ile **2022 İlçe SEGE sıralamasını** temel alan bölgesel göstergeleri birleştirir. Mevcut veri kapsamı elverdiğinde ulaşım kayıtları da değerlendirmeye katılır.
+
+Kullanıcı **Dengeli**, **Daha sakin** veya **Daha hareketli** yaşam tercihlerinden birini seçebilir. Ardından hem Türkiye genelindeki hem de seçilen ilin ilçeleri arasındaki sıralamaları inceleyebilir. **“Neden Bu İlçe Birinci?”** bölümünde birincinin puanı, alternatif ilçeyle farkı ve kullanılan göstergelerin ağırlıkları açıklanır. **İki ilçeyi karşılaştır** alanı, iki ilçeyi aynı kapsamda değerlendirmeye imkân verir.
+
+![Yaşam Kalitesi haritası ve tercih kontrolü](docs/screenshots/17-guncel-yasam-kalitesi.webp)
+
+![Türkiye geneli ilçe yaşam tercihi sıralaması](docs/screenshots/18-guncel-yasam-ilce-siralama.webp)
+
+**Modelin sınırı:** Tercih uyumu puanı, 2025 yılında yapılmış bireysel memnuniyet araştırması değildir. SEGE-2022 de kendi yayım döneminin sosyoekonomik profilini yansıtır; 2025'in doğrudan ölçümü olarak değerlendirilmez.
+
+### 4. Ticari Potansiyel: Dört sektör için ön değerlendirme
+
+Ticari Potansiyel bölümü dört sektör için ayrı karşılaştırma sunar: **Yeme-içme**, **Market / perakende**, **Hizmetler** ve **Lojistik / depolama**. Sektöre göre nüfus, yaklaşık yoğunluk, SEGE, OSM işletme kayıtları ve uygun durumlarda ulaşım göstergeleri birlikte değerlendirilir. Yeterli ve karşılaştırılabilir veri yoksa ilgili bileşen puandan çıkarılır ve kullanılan ağırlıklar yeniden düzenlenir.
+
+**Harita göstergesi** üzerinden *Sektörel fırsat puanı* veya *İlçe sayısı* seçildiğinde ilgili değerler illerin üzerinde yazılır. Sıralama, gerekçeli ilçe açıklamaları, iki ilçe karşılaştırması ve OSM işletme/ulaşım kayıtlarını inceleme bölümleri bulunur.
+
+![Sektör seçimi ve il üzerinde sektörel fırsat puanları](docs/screenshots/19-guncel-ticari-firsat.webp)
+
+OSM tablosu **resmî işyeri sicili değildir**. OSM işletme sayıları gerçek müşteri trafiği, ulaşım durak sayıları yaya akışı ve modelin fırsat puanı da kâr/ciro tahmini olarak yorumlanmamalıdır. Kira verisi, ortak karşılaştırma için yeterli kapsama sahip olmadığında puana katılmaz.
+
+### 5. Siz Sorun: Google ADK ve Gemini
+
+**Siz Sorun** ekranında hazır örnek sorulardan biri seçilebilir veya kullanıcı kendi sorusunu yazabilir. Google **Agent Development Kit (ADK)** ajanı, sorunun türüne göre uygulamanın Python veri araçlarını kullanarak deprem, nüfus, ilçe sıralamaları, afet kaynakları ve ticari göstergeler hakkında yanıt üretmek üzere tasarlanmıştır. Sayısal hesaplamalar araçlara dayanır; Gemini bu sonuçları doğal dilde açıklar.
+
+![Google ADK destekli Siz Sorun arayüzü](docs/screenshots/20-guncel-siz-sorun.webp)
+
+<details>
+<summary><strong>Örnek soru menüsü</strong></summary>
+
+![Siz Sorun örnek soru listesi](docs/screenshots/26-guncel-siz-sorun-ornekler.webp)
+
+</details>
+
+Ayrıca uygun analiz ekranlarında **Gemini ile özgün yorum oluştur** seçeneği yer alır. Geçici sunucu yoğunluğu hataları için sınırlı yeniden deneme ve alternatif model mekanizması kodda bulunmaktadır. Bunun çalışması, Google API erişimi ve kullanılan modelin kullanılabilir olmasına bağlıdır. Temel haritalar ve Python hesaplamaları yapay zekâ yanıtından ayrı çalışır.
+
+### 6. Yardım, Veri ve Yöntem
+
+**Yardım** sayfası haritadan il seçme, analizlere geçme, karşılaştırma yapma ve yapay zekâ araçlarını kullanma adımlarını açıklar. Kaynak kod deposuna bağlantı içerir. **Veri ve Yöntem** sayfası ise veri kaynaklarını, kapsam sınırlarını ve puanlama yaklaşımını açıklar.
+
+| Kullanım rehberi | Veri ve yöntem |
+| :---: | :---: |
+| ![Afet Atlas Yardım sayfası](docs/screenshots/21-guncel-yardim.webp) | ![Afet Atlas Veri ve Yöntem sayfası](docs/screenshots/22-guncel-veri-yontem.webp) |
+
+### 7. Yetkili yönetici paneli
+
+Yönetici girişine, **Genel Bakış sayfasının en altındaki küçük kilit simgesinden** ulaşılır. Bu konum yalnızca arayüz tercihidir; yönetim yetkisi kilidin konumuna değil **kullanıcı adı ve parola doğrulamasına** bağlıdır.
+
+![Yönetici girişine yönlendiren kilit](docs/screenshots/23-guncel-yonetici-kilit.webp)
+
+Yönetici panelinde şu iş akışı bulunur:
+
+1. Yalnızca yetkili kullanıcı adı ve parola ile oturum açılır. Parola doğrulamasında **Argon2id** özeti kullanılır.
+2. Yönetilebilir veri seti seçilir, uygun **CSV/JSON** dosyası yüklenir.
+3. Dosya biçimi ve içerik kuralları denetlenir; açıklama/commit notu girilir.
+4. Doğrulanan veri, yetkili bağlantı mevcutsa **ayrı özel GitHub veri deposuna** yayımlanır.
+5. Veri setlerinin durumu ve GitHub sürüm geçmişi incelenebilir; uygun sürüme geri dönme işlemleri panelden yapılabilir.
+
+| Yetkili giriş ekranı | Veri yükleme ve doğrulama |
+| :---: | :---: |
+| ![Yönetici giriş formu](docs/screenshots/24-guncel-yonetici-giris.webp) | ![Yönetici panelinin veri yükleme alanı](docs/screenshots/25-guncel-yonetici-veri-yukleme.webp) |
+
+**Depo ayrımı:** [Herkese açık kod deposu](https://github.com/utkuerekinci/afet-atlas) ile yönetilen **özel veri deposu** birbirinden bağımsızdır. GitHub erişim tokenı, yönetici parolası ve Gemini API anahtarı kaynak kod deposunda yayımlanmaz; sunucu tarafında Streamlit Secrets üzerinden yapılandırılır. Bağlantı başarısızsa dosya inceleme arayüzü açılabilir, ancak veri yayımlama yetki doğrulanana kadar kapalı kalır.
+
+---
+
+## Veriler, dönemler ve puanlama
+
+Farklı veri kaynakları aynı takvim yılını ölçmez. Uygulama bu nedenle kaynağın **türünü, tarihini ve kapsamını** analizden ayırarak sunmayı amaçlar.
+
+| Veri grubu | Dönem | Kullanım | Kaynak / açıklama |
+| :--- | :--- | :--- | :--- |
+| Deprem olay kataloğu | Yerel paket: **2025**; arayüz filtreleri kapsama bağlı | Büyüklük, tarih ve konumsal eşleştirme | [USGS Earthquake Catalog](https://earthquake.usgs.gov/earthquakes/search/) |
+| İl sınırları | Veri dosyasının sürümü | 81 ilin GeoJSON poligonları | [geoBoundaries](https://www.geoboundaries.org/) / TUR ADM1 |
+| İlçe nüfusu | **2025** | 973 ilçenin nüfus ve yaklaşık yoğunluk alanları | TÜİK ADNKS temelli, [topografya/veri](https://github.com/topografya/veri) üzerinden işlenen aktarım |
+| İlçe SEGE | **2022** | İlçe sosyoekonomik gelişmişlik sırası ve modeli | [Sanayi ve Teknoloji Bakanlığı SEGE](https://www.sanayi.gov.tr/bolgesel-kalkinma-faaliyetleri/analitik-calismalar/01161b) |
+| İşletme / ulaşım | Paketli OSM özeti | İlçe düzeyi işletme etiketi ve durak/istasyon kayıtları | [OpenStreetMap](https://www.openstreetmap.org/) / [Geofabrik](https://download.geofabrik.de/) temelli özet |
+| Orman yangını | **2024–2025** | İl düzeyinde yangın ve yanan alan göstergeleri | OGM kaynaklarına dayalı **ikincil tablolar**; resmî satır düzeyi doğrulama sınırı mevcut |
+| Sel, heyelan, çığ, fırtına | **2024** | MGM raporunda bildirilen özetler ve öne çıkan iller | [MGM 2024 Meteorolojik Afetler Değerlendirmesi](https://www.mgm.gov.tr/FILES/genel/raporlar/2024%20MetAfet%20Degerlendirme%20Raporu_V1.pdf) |
+| Kuraklık | **2024** | 7 coğrafi bölgenin yağış sapmasının haritada gösterimi | [MGM 2024 İklim Raporu](https://www.mgm.gov.tr/FILES/iklim/yillikiklim/2024-iklim-raporu.pdf) |
+
+### Endeks mantığı
+
+**Afet güvenlik endeksi** uygulamada 0–100 aralığında gösterilir. Modeldeki ağırlıklar: deprem **%30**, orman yangını **%20**, sel/taşkın **%12**, heyelan **%10**, çığ **%6**, fırtına **%10**, kuraklık **%12**. Kullanılan kaynaklar normalize edilerek birleştirilir; raporda bulunmayan il kayıtları otomatik olarak sıfır olay kabul edilmez. Bu puan **bilimsel afet güvenliği olasılığı değildir**.
+
+**Yaşam tercihi endeksi** için hedeflenen temel bileşenler yerleşim ritmi **%60**, SEGE **%30** ve ulaşım **%10** olarak tanımlanmıştır. Veri olmayan bileşenin ağırlığı, kullanılabilir göstergeler arasında yeniden paylaştırılır. Dengeli/sakin/hareketli tercihi yerleşim ritmi bileşeninin yorumunu değiştirir.
+
+**Ticari fırsat endeksi**, sektöre göre değişen nüfus, yoğunluk, SEGE, işletme kümelenmesi, işletme/nüfus oranından türetilen rekabet baskısı, ulaşım ve yalnızca yeterli ulusal kapsama sahip olduğunda kira bileşenlerinin ağırlıklı sıralamasıdır. Eksik bir alanın puanı keyfî biçimde sıfır yapılmaz. Ağırlıklar **proje modeline ait varsayımlardır**; gerçekleşmiş kâr veya yatırım performansıyla kalibre edildiği iddia edilmez.
+
+İlçe sonuçları Türkiye çapında ya da seçilen il sınırlarında yeniden hesaplanabilir. Birincilik açıklamaları, puanı oluşturan katkılarla ve ikinci sıradaki alternatifle birlikte değerlendirilir.
+
+---
+
+## Teknik mimari
+
+Uygulama **Python / Streamlit** ile geliştirilmiştir. **pandas** veri tabloları, **shapely / pyproj** mekânsal işlemler, **Plotly** grafikler, **Folium / Leaflet** sabit etkileşimli harita, **Google ADK ve Gemini** veri odaklı doğal dil yorumları için kullanılmaktadır. Yönetici veri güncellemelerinde **GitHub REST API** ve parola doğrulamasında **Argon2id** bulunur.
+
+```text
+afet-atlas/
+├── app.py                    # Streamlit giriş noktası, menü ve sayfalar
+├── atlas_ui.py               # Yaşam / Ticaret modülleri
+├── atlas_afet_ui.py          # Deprem dışı afet ekranları
+├── atlas_harita.py           # Harita veri/çizim yardımcıları
+├── atlas_sabit_harita.py     # İl tıklamalı sabit Türkiye haritası
+├── bolge_puanlari.py        # Yaşam ve ticaret endeksleri
+├── hesaplama.py              # Deprem hesaplama mantığı
+├── atlas_gemini_yorum.py     # Gemini yorum çağrıları
+├── atlas_gemini_dayaniklilik.py # Geçici API hatalarında yeniden deneme
+├── atlas_yonetim_ui.py      # Yönetici oturumu ve veri yükleme arayüzü
+├── atlas_yonetim_depo.py    # Özel GitHub veri deposuyla işlemler
+├── atlas_kaydirma.py        # Sayfa içi kaydırma düğmesi
+├── afet_atlas_adk/
+│   ├── agent.py              # ADK ajanı ve yönergeleri
+│   ├── calistir.py           # Ajanı çalıştırma yolu
+│   ├── veri_araclari.py      # Deprem veri araçları
+│   ├── bolge_araclari.py     # İlçe / yaşam / ticaret araçları
+│   ├── diger_afet_araclari.py # Diğer afetlere ilişkin araçlar
+│   └── kapsam_araclari.py    # Veri kapsamı ve yöntem araçları
+├── indirilen_veriler/       # Paketli veri dosyaları ve manifestler
+├── docs/screenshots/        # Gerçek uygulama ekran görüntüleri
+├── requirements.txt
+└── README.md
 ```
 
-Bu komut uygulamanın ziyaretçilerine değil, geliştiriciye aittir. Nüfus ve SEGE dosyaları artık pakete eklenmiş ve 973/973 eşleştirilmiştir; bu ikisi için indirme komutu çalıştırman gerekmez. `python kontrol_sege_nufus.py` doğrulamayı tekrarlar. 2024/2025 orman yangını XLSX sayfaları
-**ham CSV** olarak çıkarılır; il sayısal değerleri kontrol edilmeden haritaya
-aktarılmaz. Bu ortamdan canlı dosya indirme **DNS bağlantı hatası** nedeniyle
-başarılı olmadı. Deprem dışındaki afet verileri bu ZIP içinde hâlâ hazır değildir.
+### İşleyiş
 
-## Doğrulama
-
-```powershell
-python -m unittest test_ortak_mimari test_adk_araclari test_bolge_puanlari test_harita test_yasam_ticaret -v
-python test_hesaplama.py
-python -m unittest test_adk_genisleme -v
+```text
+Veri dosyaları / özel veri deposu
+              │
+              ▼
+     Python okuma ve doğrulama
+              │
+              ▼
+  Hesaplama + göreli endeks modelleri
+              │
+      ┌───────┴────────┐
+      ▼                ▼
+ Streamlit arayüzü   Google ADK araçları
+ Harita / tablolar         │
+      │                    ▼
+      │               Gemini yanıtı
+      └─────────┬──────────┘
+                ▼
+         Kullanıcıya sunum
 ```
 
-Yerel testler gerçek 2025 USGS CSV'sini, 81 il GeoJSON'u ve sadece test sırasında oluşturulmuş örnek ilçe tablolarını kullanır. **Test tabloları yayımlanan nüfus verisi değildir.** Canlı Streamlit il tıklaması ve Gemini bağlantısı bilgisayarında ayrıca denenmelidir.
+Modelin hesaplamayı gerçekleştiren koduyla doğal dilde yorum üreten yapay zekâ bileşeni birbirinden ayrıdır. Yapay zekâ için ağ ve uygun API anahtarı gerekir; kaynaklı istatistiklerin kendisi Python modüllerinde hesaplanır.
 
-## Proje geçmişi ve hocanın istediği ekran görüntüleri
+## Yerel kurulum
 
-Daha önceki ZIP klasörleriyle gerçek tarihî ekran görüntüsü çekilerek aşağıya eklenecek:
+### Gereksinimler
 
-| Sürüm | Ekran görüntüsü |
-|---|---|
-| İlk deprem prototipi | `docs/screenshots/01-ilk-prototip.png` |
-| Koyu tema ve ilk Google ADK | `docs/screenshots/02-adk-sismik.png` |
-| Ortak harita v3.4/v3.5 | `docs/screenshots/03-ortak-harita.png` |
-| Ticaret & birincilik açıklaması | `docs/screenshots/04-neden-birinci.png` |
+- Python 3.11 veya uyumlu bir güncel Python 3 sürümü
+- İnternet erişimi (dış veri indirme, Gemini ve GitHub işlemleri gerektiğinde)
+- [requirements.txt](requirements.txt) dosyasındaki Python paketleri
 
-Görüntüleri çekip `docs/screenshots/` içine koyduktan sonra Markdown ile ekle:
+```bash
+# Kaynak kodu indir
+# https://github.com/utkuerekinci/afet-atlas
 
-```markdown
-![İlk prototip](docs/screenshots/01-ilk-prototip.png)
-![Son arayüz - Türkiye haritası](docs/screenshots/03-ortak-harita.png)
-![Neden Bu İlçe Birinci](docs/screenshots/04-neden-birinci.png)
+# Proje klasöründe bağımlılıkları yükle
+python -m pip install -r requirements.txt
+
+# Uygulamayı çalıştır
+python -m streamlit run app.py
 ```
 
-**Görseller henüz ZIP'te yoktur.** Görseller gerçek uygulamadan çekilmeli; tarihî sürüm için yeni sahte ekran çizilmemeli.
+Streamlit terminalde yerel adresi gösterir (çoğu kurulumda `http://localhost:8501`). Paketli verilerle çalışan harita ve temel analizler, Gemini isteği yapılmadan da incelenebilir.
 
-## Kaynak ve lisanslar
+### İsteğe bağlı yapay zekâ ve yönetici yapılandırması
 
-- [USGS Earthquake Catalog](https://earthquake.usgs.gov/earthquakes/search/)
-- [geoBoundaries Türkiye ADM1](https://www.geoboundaries.org/api/current/gbOpen/TUR/ADM1/)
-- [TÜİK tabanlı ilçe demografi JSON aktarımı](https://github.com/topografya/veri) — kaynak TÜİK ADNKS 2025
-- [Resmî TÜİK ADNKS 2025](https://data.tuik.gov.tr/Bulten/Index?p=Adrese-Dayali-Nufus-Kayit-Sistemi-Sonuclari-2025-53899)
-- [Sanayi ve Teknoloji Bakanlığı İlçe SEGE-2022](https://www.sanayi.gov.tr/assets/pdf/birimler/2022-ilce-sege.pdf)
-- [Streamlit](https://docs.streamlit.io/)
-- [Google ADK](https://adk.dev/)
+Yerel ortam değişkenleri veya **Streamlit Secrets** üzerinden aşağıdaki ayarlar tanımlanabilir. **Gerçek değerler asla repoya veya ekran görüntülerine eklenmemelidir.**
 
-## Sonraki veri aşamaları
+| Gizli ayar | Görev |
+| :--- | :--- |
+| `GOOGLE_API_KEY` | Gemini / ADK API erişimi |
+| `AFET_ATLAS_MODEL` | Kullanılacak birincil Gemini modeli (hesapta erişilebilir model olmalı) |
+| `AFET_ATLAS_YEDEK_MODEL` | İsteğe bağlı yedek model |
+| `AFET_ATLAS_ADMIN_KULLANICI` | Tek yetkili yönetici kullanıcı adı |
+| `AFET_ATLAS_ADMIN_SIFRE_OZETI` | Argon2id biçiminde parola özeti |
+| `AFET_ATLAS_VERI_REPOSU` | Ayrı özel GitHub veri deposunun `sahip/depo` adı |
+| `AFET_ATLAS_VERI_DALI` | Özel veri deposunda kullanılan dal |
+| `AFET_ATLAS_VERI_TOKEN` | Yalnızca özel veri deposuna erişebilen fine-grained GitHub tokenı |
 
-1. **Tamamlandı:** 2025 ilçe nüfus CSV ve SEGE-2022 resmî PDF kaynaklarından 973 ilçe birebir eşleşti.
-2. **Tamamlandı (v3.8):** Ulusal ilçe ticaret sıralamasına OSM işletme etiketleri ve toplu taşıma kayıtları eklendi; seyrek veri içeren lojistik puanında bu göstergeler kullanılmıyor.
-3. Orman yangını, sel/taşkın, heyelan, çığ, fırtına ve kuraklık verilerini **81 il düzeyinde** doğrulayarak katmanlara ekle.
-4. Gerçek ekran görüntülerini README'ye ekle; son sürüm GitHub/Streamlit üzerinde ayrı test edilsin.
+Yönetici parolasının özetini üretme ve GitHub erişim izinlerini hazırlama adımları için [YONETICI_KURULUM.md](YONETICI_KURULUM.md) dosyası kullanılabilir. Özel depoya erişim yetkisi, uygulamanın kod deposuna erişim yetkisinden ayrı yönetilir.
 
-**Hızlı doğrulama:** `python kontrol_sege_nufus.py` komutu `OK: 973/973` vermelidir. İlgili ham ve birleşik CSV'ler zaten pakettedir.
+### Testler
 
+```bash
+python -m unittest discover -v
+```
 
-## SEGE-2022 gerçek PDF doğrulaması (v3.5.3)
+Testler veri eşleştirme, puanlama, harita ve çeşitli uygulama bileşenlerini kapsayan birim kontroller içerir. Gerçek **Gemini yanıtı**, canlı harita tıklamaları ve GitHub özel depo yetkileri ayrıca çalışan ortamda doğrulanmalıdır.
 
-`SEGE_DOGRULAMA_NOTU.md` dosyasında 81 il, 973 ilçe ve 0 PDF içi çelişki sonucunun ayrıntılı kanıtları yer alır. Paket içindeki `indirilen_veriler/ilce_sege_2022.csv` doğrudan uygulama tarafından okunur. 2025 nüfus dosyası başka kaynak olarak ve ayrı yıl etiketiyle kullanılır.
+---
 
+## Geliştirme süreci
 
-### v3.5.5 — Neden Birinci? gerekçeli paragraf
+Afet Atlas, tek bir deprem karşılaştırma ekranından başlayıp çok kaynaklı bölgesel analiz platformuna dönüştü. Aşağıdaki kronoloji, proje dosyaları ve **gerçek sürüm ekran görüntüleri** üzerinden hazırlanmıştır; erken aşamadaki tamamlanmamış modüller güncel sistemin özellikleriymiş gibi değerlendirilmemelidir.
 
-Türkiye genelindeki ve il içindeki yaşam/ticaret birincileri artık yalnızca puanla değil,
-aynı karşılaştırmadaki gerçek nüfus (2025), SEGE (2022), yaklaşık nüfus yoğunluğu
-ve model katkılarına dayanan kısa ve ilçeye özgü yorum paragrafıyla açıklanır.
-Yorum, `atlas_analiz.neden_birinci` sonucunun `yorum_paragrafi` alanında yer alır;
-hem Streamlit arayüzü hem Google ADK aynı veriyi kullanır.
-Başka veri yokken kira, yaya trafiği, gerçek gelir, suç veya sağlık göstergeleri icat edilmez.
+| Aşama | Gelişme |
+| :--- | :--- |
+| **İlk prototip** | USGS deprem kayıtları, yıl/büyüklük/yakınlık filtreleri, ilk il karşılaştırması. İlk ekran görüntüsünde harita alanı henüz tamamlanmış görünmüyor. |
+| **v2.x** | Deprem haritasının ve il sıralamalarının geliştirilmesi; Google ADK ile ilk *Siz Sorun* ekranı. |
+| **v3.0** | Çoklu afet için ilk arayüz taslağı. Taslakta sekiz afet konusu yer alırken güncel modelde yedi başlık değerlendiriliyor. |
+| **v3.2** | İlçe bazında yaşam ve ticaret ön analizlerinin eklenmesi. |
+| **v3.4–v3.5** | Ortak Türkiye haritası, il/ilçe karşılaştırmaları ve gerekçeli sıralama açıklamaları. |
+| **v3.5.4–v3.8** | 973 ilçenin nüfus–SEGE eşleştirmesi, afet katmanları ve ilçe ölçeğinde OSM işletme/ulaşım verilerinin eklenmesi. |
+| **v4.0–v4.2** | Üç temalı Genel Bakış, yenilenen açıklamalar ve Gemini yorumlarının geliştirilmesi. |
+| **v4.3–v4.12** | Sayfa düzeni, Yardım, sabit il haritası, yedi afetli birleşik endeks ve yönetici paneli çalışmalarının olgunlaştırılması. |
+| **v4.13–v4.20.x** | Koyu tema, filtre davranışı, ticari harita değer etiketleri, geçici Gemini hata yönetimi, sağ alt kaydırma düğmesi ve alt bilgi kilidiyle yönetici girişinin son düzeni. |
 
+<details>
+<summary><strong>Gelişim aşamalarının ekran görüntülerini aç</strong></summary>
 
-## v3.8 — Türkiye 973 ilçe OSM gerçek veri entegrasyonu
+#### İlk deprem prototipi
 
-`indirilen_veriler/ticaret_osm_ilce.csv` ve `indirilen_veriler/ticaret_osm_manifest.json`
-973 ilçenin tamamı için hazırdır; uygulama ve Google ADK bu özetleri otomatik okur.
-**Ham `.osm.pbf` dosyasını siteye yüklemeyin; Python yeniden işlemeye gerek yoktur.**
+![İlk deprem analiz prototipi](docs/screenshots/01-ilk-deprem-prototipi.webp)
 
-Kaydedilen OSM kategorileri: yeme-içme 40.686, perakende 88.248, hizmetler 49.656,
-lojistik 144, toplu taşıma 57.277. Toplam 236.011 kategori/ulaşım etiketi.
-Kategoriler üst üste binebilir ve gönüllü OSM kapsamı bölgeye göre değişir.
-Bu sayılar **resmî faal işletme veya müşteri sayısı değildir**.
+#### v2.6 — Deprem analizi ve ilk ADK asistanı
 
-Lojistik etiketleri 973 ilçenin yalnızca 79'unda sıfırdan büyüktür.
-İşletme/rekabet göstergelerinin en az %20 ilçede ve en az üç ilçede
-gözlenmesi koşulu, OSM kayıtları nadir olduğunda sıfırları rekabet avantajı saymamak için eklenmiştir.
-Bu bir veri-kapsam korumasıdır, bilimsel olarak kalibre edilmiş eşik değildir.
-Eksik göstergeler puandan çıkarılıp kalan ağırlıklar yeniden normalize edilir.
-OSM lojistik sayımları yine harita ve tabloda görünürdür.
+![Gelişmiş deprem haritası v2.6](docs/screenshots/02-v26-deprem-haritasi.webp)
 
-İlçe sınırı kaynağı, ilk bağlantı çalışmadığı için alternatif siteden indirilmiştir
-(https://rodostoteknoloji.com/online-tools/turkey-boundaries.html);
-ilçe adlarının eşleştirilmesi ve hatalı geometri düzeltmesi sonrasında veri işlenmiştir.
-PBF'nin içindeki gerçek OSM snapshot tarihi bağımsız doğrulanmamıştır.
-**Ticari kira, yaya sayısı, gerçek müşteri ve ciro verileri hâlâ yoktur.**
+![İlk Siz Sorun arayüzü](docs/screenshots/03-v26-siz-sorun.webp)
 
-Testler: `python -m unittest discover -p "test_*.py"`
+#### v3.0–v3.2 — Çoklu afet ve ilçe modülleri
 
-## v4.2 Gemini ile seçmeli açıklamalar
+![İlk çoklu afet tasarımı](docs/screenshots/04-v30-coklu-afet.webp)
 
-Genel Bakış, Yaşam Kalitesi, Ticari Potansiyel ve Afet Analizi ekranlarında **✦ Gemini ile özgün yorum oluştur** butonu bulunur. Gemini, Python'un çıkardığı hesaplanmış verileri yorumlar; sıralamalar Python'da kalır. API anahtarı bulunmadığında uygulama mevcut açıklamalarla çalışır. `V42_GEMINI_KURULUM.md` kurulum yönergelerini içerir.
+![İlk Yaşam ve Ticaret görünümü](docs/screenshots/05-v32-yasam-ticaret.webp)
 
+#### v3.5 — Ortak harita ve açıklanabilir sıralamalar
 
-## v4.4 — Arayüz ince ayarları
+![Ortak harita deprem katmanı](docs/screenshots/06-v35-ortak-deprem-haritasi.webp)
 
-Son sürümde eski ana sayfa marka başlığı ve dört bilgi kartı geri getirildi. Nüfus haritalarında daha aydınlık renk geçişi, belirgin açılır Analizler menüsü ve güncellenmiş yardım yönergeleri kullanıldı. Yaşam ve ticaret bölümlerinde ilçe tablosu solda, yatay çubuk grafiği sağda gösterilir; grafik puanları sadece üzerine gelince görünür, sürükleme ve yakınlaştırma kapalıdır. Gemini düğmesi seçilen il/ilçenin adını taşıyan "daha fazla bilgi" eylemine dönüştürüldü. Ayrıntılar: `V44_ARAYUZ_DUZENLEMELERI.md`.
+![İlçe yaşam sıralaması](docs/screenshots/07-v35-yasam-ilce-siralamasi.webp)
 
+![İlk ayrıntılı neden birinci açıklaması](docs/screenshots/08-v35-neden-ilce-birinci.webp)
 
-## v4.7 arayüz güncellemesi
-Yaşam ve ticarette tek açıklama paneli, alfabetik il/ilçe karşılaştırması, ticari fırsat haritası ve yeni menü renkleri. Ayrıntılar: [v4.7 değişiklikleri](V47_KULLANICI_DUZENLEMELERI.md).
+#### v3.6–v3.8 — Veri katmanlarının genişlemesi
+
+![Orman yangını gösterimi](docs/screenshots/28-gelisim-orman-yangini-v36.webp)
+
+![OSM işletme ve ulaşım göstergeleri](docs/screenshots/29-gelisim-osm-ticaret-v38.webp)
+
+#### v4.2 — Gelişmiş Genel Bakış ve bölgesel açıklamalar
+
+![Genel Bakış afet haritası](docs/screenshots/09-v42-afet-genel-bakis.webp)
+
+![Ticari OSM görünümü](docs/screenshots/10-v42-osm-ticaret.webp)
+
+</details>
+
+<details>
+<summary><strong>Güncel arayüzden diğer ekran görüntülerini aç</strong></summary>
+
+![Genel Bakış seçilen ilin özeti ve analiz yönlendirmeleri](docs/screenshots/14-guncel-genel-bakis-alt.webp)
+
+![Genel Bakış kullanım ipucu ve harita](docs/screenshots/27-guncel-genel-bakis-yardim-ipuclari.webp)
+
+</details>
+
+---
+
+## Kapsam ve kullanım sınırları
+
+Bu platformda bazı kaynaklar **olay kaydı**, bazıları **kurumsal rapor özeti**, bazıları **ilçe istatistiği** ve bazıları **OSM etiketi** niteliğindedir. Birbirine eşdeğer kabul edilmezler. Özellikle:
+
+- Veri yılının farklı olması, farklı dönemlerin birlikte yorumlandığı anlamına gelir; tüm göstergeler aynı güne ait değildir.
+- Deprem geçmişi veya ağırlıklı afet endeksi geleceğe yönelik deprem/risk tahmini olarak kullanılamaz.
+- MGM metninde adı geçmeyen il için sıfır olay sonucuna varılamaz; çığ sınıfları kesin sayıya indirgenemez.
+- İkincil orman yangını tablolarının doğrulama düzeyi resmî satır kontrolünden farklıdır.
+- OSM kayıtları tüm işletmeleri kapsamayabilir; müşteri, kira, yaya veya ciro tahmini değildir.
+- İlçe sıralamaları, seçilen tercihe, sektöre ve erişilebilir bileşenlere bağlıdır. Hesaplanan puanlar bilimsel olarak doğrulanmış güvenlik veya refah olasılıkları değildir.
+- Google ADK / Gemini yanıtı yalnızca ilgili servis kullanılabilir ve API erişimi geçerliyken üretilebilir.
+
+Bu sınırlar, analizlerin **kanıta dayalı bir ön inceleme** olarak kullanılmasını sağlar ve sonuçların kapsamı dışında kesin hükümler verilmesini önlemeye yardımcı olur.
+
+---
+
+<div align="center">
+
+**Afet Atlas · BBY261 İleri Programlama**
+
+[Canlı Uygulama](https://afetatlas.streamlit.app/) · [Kaynak Kod](https://github.com/utkuerekinci/afet-atlas) · [Yönetici Kurulumu](YONETICI_KURULUM.md)
+
+</div>
